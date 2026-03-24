@@ -1,0 +1,191 @@
+ {isExpanded && (
+  <div className="bg-background/60 backdrop-blur-xl p-6 lg:p-12 border-t border-border animate-in slide-in-from-top-4 duration-500">
+
+  {/* ================= HEADER: DIRECTIVE PARAMETERS (MINIMAL) ================= */}
+<div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+  <h1 className="text-xl md:text-2xl font-black tracking-tight text-foreground">
+    {task.taskName}
+  </h1>
+
+  <p className="text-sm md:text-base font-medium text-foreground/70 md:max-w-[60%]">
+    {task.description || "NO MISSION DATA"}
+  </p>
+
+</div>
+
+  {/* ================= MAIN GRID ================= */}
+  <div className="grid grid-cols-1 xl:grid-cols-[1fr_1fr] gap-10 items-stretch">
+
+    {/* ================= LEFT: DIRECT STATUS ================= */}
+    <div className="flex-1 max-h-[450px] overflow-y-auto custom-scrollbar w-full">
+      <h5 className="text-primary font-black text-[10px] uppercase tracking-[0.4em] mb-4">
+    Work Status
+  </h5>
+
+  <div className="w-full min-w-full">
+
+    {/* HEADER */}
+    <div className="grid grid-cols-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-border bg-card sticky top-0 z-10">
+      <span>Date</span>
+      <span>Status</span>
+      <span className="text-right">Action</span>
+    </div>
+
+    {/* ROWS */}
+    {instances.map((instance, idx) => {
+      const rowColor =
+        instance.isPast
+          ? 'text-red-500'
+          : instance.isToday
+          ? 'text-amber-600'
+          : 'text-indigo-600';
+
+      return (
+        <div
+          key={idx}
+          className="grid grid-cols-3 items-center px-4 py-2 border-b border-border/50 hover:bg-muted/30 transition"
+        >
+          {/* DATE */}
+          <span className="font-semibold text-foreground text-sm">
+            {instance.date.toLocaleDateString('en-IN', {
+              weekday: 'short',
+              day: '2-digit',
+              month: 'short'
+            })}
+          </span>
+
+          {/* STATUS */}
+          <span className={`text-[10px] font-black uppercase tracking-widest ${rowColor}`}>
+            {instance.status}
+          </span>
+
+          {/* ACTION */}
+          <div className="flex justify-end">
+            {(userRoles.includes('Admin') || userRoles.includes('Coordinator')) && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveTask(task);
+                  setSelectedDate(instance.date.toISOString());
+                  setShowModal(true);
+                }}
+                className={`px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-widest ${
+                  instance.isPast
+                    ? 'bg-red-600 text-white'
+                    : instance.isToday
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-indigo-600 text-white'
+                }`}
+              >
+                {instance.isTomorrow ? 'EARLY' : 'DONE'}
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    })}
+
+  </div>
+</div>
+
+{/* ================= RIGHT: OPERATIONAL LEDGER ================= */}
+{/* ================= RIGHT: OPERATIONAL LEDGER ================= */}
+<div className="bg-card p-6 rounded-[2.5rem] border border-border shadow-xl flex flex-col max-h-[400px] + flex-1 + overflow-y-auto overflow-hidden">
+
+  <h5 className="text-primary font-black text-[10px] uppercase tracking-[0.4em] mb-4">
+    Activity History
+  </h5>
+
+  <div className="flex-1 overflow-y-auto  custom-scrollbar w-full">
+
+    <div className="w-full text-sm">
+
+      {/* HEADER */}
+      <div className="grid grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-border sticky top-0 bg-card z-10">
+        <span>Action</span>
+        <span>Target</span>
+        <span>Time</span>
+        <span className="text-right">Link</span>
+      </div>
+
+      {/* ROWS */}
+      {Array.isArray(task.history) && task.history.length > 0 ? (
+        [...task.history].reverse().slice(0, 15).map((log, i) => (
+          <div
+            key={i}
+            className="grid grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] items-center px-4 py-2 border-b border-border/50 hover:bg-muted/30 transition min-w-0"
+          >
+
+            {/* ACTION + REMARK */}
+            <div className="flex flex-col min-w-0">
+              <span className="text-primary text-[10px] font-black uppercase tracking-widest truncate">
+                {log.action}
+              </span>
+              <span
+                className="text-slate-500 text-xs italic truncate"
+                title={log.remarks || "Mission completed."}
+              >
+                {log.remarks || "Mission completed."}
+              </span>
+            </div>
+
+            {/* TARGET */}
+            <span className="text-emerald-600 text-[10px] font-bold uppercase truncate">
+              {log.instanceDate
+                ? new Date(log.instanceDate).toLocaleDateString('en-IN', {
+                    day: '2-digit',
+                    month: 'short'
+                  })
+                : '--'}
+            </span>
+
+            {/* TIME */}
+            <div className="text-slate-400 text-[10px] font-bold flex flex-col min-w-0">
+              <span>
+                {new Date(log.timestamp).toLocaleDateString('en-IN', {
+                  day: '2-digit',
+                  month: 'short'
+                })}
+              </span>
+              <span>
+                {new Date(log.timestamp).toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </span>
+            </div>
+
+            {/* LINK */}
+            <div className="flex justify-end min-w-0">
+              {log.attachmentUrl ? (
+                <a
+                  href={log.attachmentUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-primary text-[9px] font-black uppercase tracking-widest hover:opacity-70"
+                >
+                  View
+                </a>
+              ) : (
+                <span className="text-slate-400 text-[9px]">—</span>
+              )}
+            </div>
+
+          </div>
+        ))
+      ) : (
+        <div className="text-center py-20 opacity-20">
+          <ClipboardList size={50} className="mx-auto mb-4" />
+          <p className="text-[10px] font-black uppercase tracking-widest">
+            Registry Log Empty
+          </p>
+        </div>
+      )}
+
+    </div>
+  </div>
+</div>
+</div>
+</div>
+)}
