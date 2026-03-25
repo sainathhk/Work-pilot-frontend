@@ -19,7 +19,6 @@ import {
   Search,
   UserCheck
 } from "lucide-react";
-
 /**
  * CREATE TASK: DIRECTIVE PROVISIONING MODULE v1.8
  * Fix: Forced Z-Index to 999 for dropdown visibility.
@@ -168,220 +167,254 @@ const CreateTask = ({ tenantId, assignerId, employees: initialEmployees }) => {
   );
 
   return (
-    <div className="w-full max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20 selection:bg-primary/30">
-      
-      <div className="mb-10 flex flex-col md:flex-row items-center gap-5 text-center md:text-left">
-        <div className="bg-primary/10 p-4 rounded-2xl border border-primary/20 shadow-inner shrink-0">
-          <PlusCircle className="text-primary" size={32} />
-        </div>
-        <div className="min-w-0">
-          <h2 className="text-foreground text-2xl md:text-3xl font-black tracking-tighter uppercase leading-none">Delegate New Task</h2>
-          <p className="text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-wide mt-2 opacity-80 italic">Assign work, set deadlines, and build your support team.</p>
-        </div>
+<div className="w-full px-1 py-3">
+  <div className="max-w-0.5xl mx-auto">
+
+    <div className="bg-card/80 backdrop-blur border border-border rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 p-6 sm:p-8">
+
+      {/* HEADER */}
+      <div className="mb-6 border-b border-border pb-4">
+        <h2 className="text-2xl font-bold text-foreground">
+          Create New Deligation Task
+        </h2>
+        <p className="text-sm text-slate-500 mt-1">
+          Assign work and track progress
+        </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-card backdrop-blur-xl p-6 sm:p-10 rounded-[2.5rem] border border-border shadow-2xl space-y-8 transition-colors duration-500 relative">
-        
-        <div className="space-y-3">
-          <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1">
-            <FileText size={14} className="text-primary" /> Task Title
-          </label>
-          <input
-            type="text" placeholder="What needs to be done?" required
-            value={task.title}
-            className="w-full bg-background border border-border text-foreground px-6 py-4 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-bold placeholder:text-slate-500 shadow-inner"
-            onChange={(e) => setTask({ ...task, title: e.target.value })}
-          />
+      <form onSubmit={handleSubmit} className="space-y-6">
+
+        {/* TITLE + PRIORITY */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+          {/* FLOATING INPUT */}
+          <div className="md:col-span-2 relative group">
+            <label className="text-sm font-medium text-slate-600"> Title </label>
+            <input
+              type="text"
+              required
+              value={task.title}
+              onChange={(e) => setTask({ ...task, title: e.target.value })}
+              className="peer w-full px-4 pt-3 pb-2 rounded-lg border border-border bg-background/70 text-sm outline-none
+              focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+              placeholder="Enter Title"
+            />
+            
+          </div>
+
+          {/* PRIORITY */}
+          <div>
+            <label className="text-sm font-medium text-slate-600">Priority</label>
+            <select
+              value={task.priority}
+              onChange={(e) => setTask({ ...task, priority: e.target.value })}
+              className="w-full mt-1 px-4 py-2.5 rounded-lg border border-border bg-background/70 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+            >
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
+          </div>
         </div>
 
-        <div className="space-y-3">
-          <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1">
-            <AlertCircle size={14} className="text-primary" /> Task Description
-          </label>
+        {/* DESCRIPTION */}
+        <div className="relative">
+          <label className="text-sm font-medium text-slate-600"> Description </label>
           <textarea
-            placeholder="Provide specific instructions or goals... "
             value={task.description}
-            className="w-full bg-background border border-border text-foreground px-6 py-4 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all min-h-[120px] font-medium placeholder:text-slate-500 shadow-inner resize-none"
             onChange={(e) => setTask({ ...task, description: e.target.value })}
+            className="peer w-full px-4 pt-5 pb-2 rounded-lg border border-border bg-background/70 text-sm min-h-[110px]
+            focus:ring-2 focus:ring-primary/30 outline-none"
+            placeholder="Enter Description"
           />
         </div>
 
-        {/* SEARCHABLE PRIMARY DOER SELECTION */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-3 relative" ref={doerDropdownRef}>
-            <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1">
-              <User size={14} className="text-primary" /> Primary Doer (Lead)
+        {/* MAIN GRID */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          {/* FOLLOWERS */}
+          <div className="lg:col-span-2 flex flex-col">
+            <label className="text-sm font-medium text-slate-600">
+              Followers
             </label>
-            <div className="relative group">
-              <input 
+
+            {/* SELECTED CHIPS */}
+            {selectedHelpers.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {selectedHelpers.map((h) => (
+                  <div key={h.helperId} className="flex items-center gap-2 px-3 py-1 text-xs bg-primary/10 text-primary rounded-full">
+                    {h.name}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSelectedHelpers(selectedHelpers.filter(x => x.helperId !== h.helperId))
+                      }
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* SEARCH */}
+            <input
+              type="text"
+              value={followerSearch}
+              onChange={(e) => setFollowerSearch(e.target.value)}
+              placeholder="Search followers"
+              className="w-full mt-2 px-4 py-2 rounded-lg border border-border text-sm bg-background/70 focus:ring-2 focus:ring-primary/30"
+            />
+
+            {/* SCROLLABLE LIST */}
+            <div className="mt-2 h-40 overflow-y-auto border border-border rounded-lg p-1 space-y-1 custom-scrollbar">
+              {filteredFollowers.map((emp) => (
+                <label
+                  key={emp._id}
+                  className="flex justify-between items-center px-3 py-2 text-sm hover:bg-primary/5 cursor-pointer rounded-md transition"
+                >
+                  <span>{emp.name}</span>
+                  <input
+                    type="checkbox"
+                    className="accent-primary"
+                    checked={selectedHelpers.some(h => h.helperId === emp._id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedHelpers([...selectedHelpers, { helperId: emp._id, name: emp.name }]);
+                      } else {
+                        setSelectedHelpers(selectedHelpers.filter(h => h.helperId !== emp._id));
+                      }
+                    }}
+                  />
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* RIGHT PANEL */}
+          <div className="space-y-5">
+
+            {/* ASSIGN */}
+            <div ref={doerDropdownRef} className="relative">
+              <label className="text-sm font-medium text-slate-600">Assign To</label>
+              <input
                 type="text"
-                placeholder="Search staff by name..."
                 value={doerSearch}
                 onFocus={() => setShowDoerDropdown(true)}
-                onChange={(e) => { setDoerSearch(e.target.value); setShowDoerDropdown(true); }}
-                className={`w-full bg-background border ${task.doerId ? 'border-emerald-500/50' : 'border-border'} text-foreground px-12 py-4 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 transition-all font-bold shadow-inner uppercase text-xs`}
+                onChange={(e) => {
+                  setDoerSearch(e.target.value);
+                  setShowDoerDropdown(true);
+                }}
+                placeholder="Search user"
+                className="w-full mt-1 px-4 py-2.5 rounded-lg border border-border bg-background/70 text-sm focus:ring-2 focus:ring-primary/30"
               />
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              {doerSearch && (
-                <button type="button" onClick={() => { setDoerSearch(''); setTask({...task, doerId: ''}); }} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500 transition-colors"><X size={16} /></button>
+
+              {showDoerDropdown && (
+                <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-lg shadow-md max-h-50 overflow-y-auto">
+                  {filteredDoers.map(emp => (
+                    <div
+                      key={emp._id}
+                      onClick={() => handleSelectDoer(emp)}
+                      className="px-4 py-2 text-sm hover:bg-primary/10 cursor-pointer"
+                    >
+                      {emp.name}
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
 
-            {/* FIXED DROPDOWN */}
-            {showDoerDropdown && (
-              <div className="absolute z-[999] w-full mt-2 bg-card border border-border rounded-2xl shadow-2xl max-h-60 overflow-y-auto custom-scrollbar border-t-4 border-t-primary animate-in fade-in zoom-in-95">
-                {filteredDoers.length > 0 ? (
-                  filteredDoers.map(emp => (
-                    <div key={emp._id} onClick={() => handleSelectDoer(emp)} className="px-6 py-4 hover:bg-primary/10 cursor-pointer flex flex-col border-b border-border/50 last:border-0 transition-colors group">
-                      <span className="text-xs font-black text-foreground uppercase tracking-tight flex items-center gap-2">
-                        <UserCheck size={12} className="text-primary opacity-0 group-hover:opacity-100" /> {emp.name}
-                      </span>
-                      <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest ml-5">{emp.department || 'General Sector'}</span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="px-6 py-8 text-center text-slate-500 italic">
-                    <p className="text-[10px] font-black uppercase tracking-widest">No matching personnel found</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-3">
-            <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1">
-              <ShieldCheck size={14} className="text-primary" /> Priority
-            </label>
-            <div className="relative">
-              <select
-                value={task.priority}
-                className="w-full bg-background border border-border text-foreground px-6 py-4 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-bold appearance-none cursor-pointer shadow-inner uppercase tracking-tight"
-                onChange={(e) => setTask({ ...task, priority: e.target.value })}
-              >
-                <option value="Low">Low Priority</option>
-                <option value="Medium">Medium Priority</option>
-                <option value="High">High Priority</option>
-              </select>
-              <ChevronRight className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 rotate-90 pointer-events-none" size={20} />
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1">
-            <Calendar size={14} className="text-primary" /> due date
-          </label>
-          <DatePicker
-            selected={task.deadline}
-            onChange={(date) => setTask({ ...task, deadline: date })}
-            showTimeSelect
-            minDate={new Date()}
-            dateFormat="dd MMMM, yyyy h:mm aa"
-            customInput={<CustomDateInput />}
-            calendarClassName="work-pilot-dark-calendar"
-          />
-        </div>
-
-        <div className="space-y-4">
-          <div className="flex justify-between items-center px-1">
-            <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">
-              <Users size={14} className="text-primary" /> Support Followers
-            </label>
-            <div className="relative w-48">
-               <input 
-                 type="text"
-                 placeholder="Filter list..."
-                 value={followerSearch}
-                 onChange={(e) => setFollowerSearch(e.target.value)}
-                 className="w-full bg-background border border-border text-[10px] font-bold px-8 py-2 rounded-full outline-none focus:border-primary transition-all"
-               />
-               <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            </div>
-          </div>
-          <div className="bg-background border border-border rounded-2xl p-4 max-h-[180px] overflow-y-auto space-y-2 custom-scrollbar shadow-inner">
-            {filteredFollowers.map((emp) => (
-              <label key={emp._id} className="flex items-center justify-between gap-3 p-3 hover:bg-primary/5 rounded-xl cursor-pointer transition-all border border-transparent hover:border-primary/20">
-                <div className="flex flex-col min-w-0">
-                  <span className="text-xs font-black text-foreground uppercase tracking-tight truncate">{emp.name}</span>
-                  <span className="text-[9px] text-slate-500 font-bold uppercase tracking-tighter mt-0.5">Sector: {emp.department || 'N/A'}</span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={selectedHelpers.some((h) => h.helperId === emp._id)}
-                  onChange={(e) => {
-                    if (e.target.checked) { setSelectedHelpers([...selectedHelpers, { helperId: emp._id, name: emp.name }]); } 
-                    else { setSelectedHelpers(selectedHelpers.filter((h) => h.helperId !== emp._id)); }
-                  }}
-                  className="w-4 h-4 rounded accent-primary bg-background border-border shrink-0"
-                />
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1">
-            <Paperclip size={14} className="text-primary" /> Documentation and references
-          </label>
-          <div className="border-2 border-dashed border-border bg-background/50 p-8 rounded-[2rem] text-center group hover:border-primary/40 transition-all relative overflow-hidden">
-            <input type="file" multiple onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
-            <div className="flex flex-col items-center gap-3">
-              <div className="p-4 bg-primary/5 rounded-2xl group-hover:scale-110 transition-transform">
-                <Paperclip size={32} className="text-slate-400 group-hover:text-primary transition-colors" />
-              </div>
-              <div>
-                <p className="text-sm font-black text-foreground uppercase tracking-tight">Synchronize Assets</p>
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">PDF, Images, CAD Docs</p>
-              </div>
-            </div>
-          </div>
-
-          {selectedFiles.length > 0 && (
-            <div className="flex flex-wrap gap-3 mt-4">
-              {selectedFiles.map((f, i) => (
-                <div key={i} className="bg-background border border-border px-4 py-2.5 rounded-xl flex items-center gap-3 animate-in zoom-in-75">
-                  <span className="text-[11px] font-black text-foreground uppercase truncate max-w-[150px]">{f.name}</span>
-                  <button type="button" onClick={() => removeFile(i)} className="text-red-500 hover:bg-red-500/10 p-1 rounded-lg"><X size={14} /></button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="bg-background border border-border p-6 rounded-2xl flex items-center justify-between group shadow-inner">
-          <div className="flex items-center gap-5">
-            <div className={`p-3 rounded-xl ${task.isRevisionAllowed ? "bg-emerald-500/10 text-emerald-600" : "bg-red-500/10 text-red-600"}`}>
-              <RefreshCcw size={20} className={task.isRevisionAllowed ? "animate-spin-slow" : ""} />
-            </div>
+            {/* DEADLINE */}
             <div>
-              <p className="text-xs sm:text-sm font-black text-foreground uppercase tracking-tight leading-none">Allow due date adjustments</p>
+              <label className="text-sm font-medium text-slate-600">Deadline <br></br></label>
+             <DatePicker
+  selected={task.deadline}
+  onChange={(date) => setTask({ ...task, deadline: date })}
+  showTimeSelect
+  minDate={new Date()}
+  dateFormat="dd MMM yyyy, h:mm aa"
+  placeholderText="Select deadline"
+  isClearable
+
+  // ✅ ADD THESE
+  showYearDropdown
+  showMonthDropdown
+  dropdownMode="select"
+  scrollableYearDropdown
+  yearDropdownItemNumber={50}
+
+  className="w-full mt-1 px-15 py-2.5 rounded-lg border border-border bg-background/70 text-sm focus:ring-2 focus:ring-primary/30"
+/>
             </div>
+
+            {/* FILE */}
+            <div>
+              <label className="text-sm font-medium text-slate-600">Attachments</label>
+
+              <div className="mt-1 relative border border-dashed border-border rounded-lg p-4 text-center 
+              bg-background/50 hover:bg-primary/5 hover:border-primary/50 transition cursor-pointer group">
+                
+                <input
+                  type="file"
+                  multiple
+                  onChange={handleFileChange}
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                />
+
+                <p className="text-sm text-slate-500 group-hover:text-primary transition">
+                  Click to upload files
+                </p>
+                <p className="text-xs text-slate-400">
+                  PDF, Images, Docs
+                </p>
+              </div>
+
+              {selectedFiles.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {selectedFiles.map((f, i) => (
+                    <div key={i} className="flex items-center gap-2 px-3 py-1 text-xs bg-background border border-border rounded-md">
+                      {f.name}
+                      <button onClick={() => removeFile(i)}>✕</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
           </div>
-          <label className="relative inline-flex items-center cursor-pointer shrink-0">
-            <input type="checkbox" checked={task.isRevisionAllowed} onChange={(e) => setTask({ ...task, isRevisionAllowed: e.target.checked })} className="sr-only peer" />
-            <div className="w-11 h-6 bg-slate-200 dark:bg-slate-800 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary shadow-inner"></div>
-          </label>
         </div>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full py-6 rounded-[2rem] bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-400 hover:to-sky-500 text-white dark:text-slate-950 font-black text-xs sm:text-sm uppercase tracking-[0.3em] shadow-2xl shadow-primary/20 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-4"
-        >
-          {isSubmitting ? <RefreshCcw className="animate-spin" size={20} /> : <PlusCircle size={20} />}
-          {isSubmitting ? "Syncing..." : "Create Delegate task"}
-        </button>
-      </form>
+        {/* FOOTER */}
+        <div className="flex items-center justify-between pt-4 border-t border-border">
 
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.2); border-radius: 20px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--color-primary); }
-        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .animate-spin-slow { animation: spin-slow 8s linear infinite; }
-      `}</style>
+          <label className="flex items-center gap-2 text-sm text-slate-600">
+            <input
+              type="checkbox"
+              className="accent-primary"
+              checked={task.isRevisionAllowed}
+              onChange={(e) =>
+                setTask({ ...task, isRevisionAllowed: e.target.checked })
+              }
+            />
+            Allow deadline change
+          </label>
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="px-6 py-2.5 rounded-lg bg-primary text-white text-sm font-medium 
+            hover:bg-primary/90 active:scale-[0.98] transition-all shadow-sm hover:shadow-md"
+          >
+            {isSubmitting ? "Creating..." : "Create Task"}
+          </button>
+
+        </div>
+
+      </form>
     </div>
+  </div>
+</div>
+
   );
 };
 

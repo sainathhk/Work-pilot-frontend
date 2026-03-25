@@ -31,6 +31,10 @@ const CreateChecklist = ({ tenantId }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
 
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+
+
+
   const [formData, setFormData] = useState({
     taskName: '',
     description: '',
@@ -75,6 +79,13 @@ const CreateChecklist = ({ tenantId }) => {
   const handleSelectEmployee = (emp) => {
     setFormData({ ...formData, doerId: emp._id });
     setSearchTerm(emp.name);
+
+
+
+    setSelectedEmployee(emp);
+
+
+
     setShowDropdown(false);
   };
 
@@ -121,107 +132,166 @@ const CreateChecklist = ({ tenantId }) => {
       setLoading(false);
     }
   };
+{/*
+
+
+  useEffect(() => {
+  if (selectedEmployee && !selectedEmployee.workOnSunday) {
+    setFormData(prev => ({
+      ...prev,
+      frequencyConfig: {
+        ...prev.frequencyConfig,
+        daysOfWeek: prev.frequencyConfig.daysOfWeek.filter(d => d !== 0)
+      }
+    }));
+  }
+}, [selectedEmployee]);
+
+*/}
 
   return (
-    <div className="w-full max-w-4xl mx-auto pb-20 selection:bg-primary/30 px-6 animate-in fade-in duration-700">
-      
-      {/* HEADER SECTION */}
-      <div className="mb-8 flex flex-col md:flex-row items-center gap-5">
-        <div className="bg-primary/10 p-5 rounded-2xl border border-primary/20 shadow-inner shrink-0">
-          <Activity className="text-primary" size={32} />
-        </div>
-        <div className="min-w-0">
-          <h2 className="text-foreground text-2xl md:text-3xl font-black tracking-tighter uppercase leading-none">Initialize Checklist Task</h2>
-          <p className="text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-widest mt-2 opacity-80">Provision master recurring work schedules for the ledger.</p>
-        </div>
-      </div>
+ <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 animate-in fade-in duration-700 selection:bg-primary/30">
 
-      <form onSubmit={handleSubmit} className="bg-card backdrop-blur-xl p-8 sm:p-12 rounded-[2.5rem] border border-border shadow-2xl space-y-10">
-        
-        {/* TASK IDENTITY */}
-        <div className="space-y-4">
-          <label className="flex items-center gap-3 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em] ml-1">
-            <CheckCircle2 size={18} className="text-primary" /> Task Name
+  {/* HEADER */}
+  <div className="mb-8 flex items-center gap-5">
+    <div className="bg-primary/10 p-4 rounded-2xl border border-primary/20 shadow-inner">
+      <Activity className="text-primary" size={28} />
+    </div>
+    <div>
+      <h2 className="text-foreground text-2xl md:text-3xl font-black uppercase leading-none">
+        Initialize Checklist Task
+      </h2>
+      <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm font-bold uppercase tracking-widest mt-2 opacity-80">
+        Provision recurring work schedules
+      </p>
+    </div>
+  </div>
+
+  <form onSubmit={handleSubmit} className="bg-card p-6 sm:p-8 lg:p-10 rounded-[2rem] border border-border shadow-2xl">
+
+    {/* 🔥 GRID LAYOUT */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+
+      {/* ================= LEFT ================= */}
+      <div className="space-y-6">
+
+        {/* TASK NAME */}
+        <div className="space-y-2">
+          <label className="text-xs font-black text-slate-500 uppercase tracking-widest">
+            Task Name
           </label>
-          <input 
-            type="text" required 
-            placeholder="e.g. Daily Inventory Synchronization"
-            value={formData.taskName} 
-            onChange={(e) => setFormData({...formData, taskName: e.target.value})}
-            className="w-full bg-background border border-border text-foreground px-6 py-5 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 transition-all font-black placeholder:text-slate-500 text-xl shadow-inner"
+          <input
+            type="text"
+            required
+            value={formData.taskName}
+            onChange={(e) => setFormData({ ...formData, taskName: e.target.value })}
+            className="w-full bg-background border border-border px-4 py-2 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 font-bold text-base"
+            placeholder="Enter Task Name"
           />
         </div>
 
-        {/* TASK DESCRIPTION */}
-        <div className="space-y-4">
-          <label className="flex items-center gap-3 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em] ml-1">
-            <AlignLeft size={18} className="text-primary" /> Task Description
+        {/* DESCRIPTION */}
+        <div className="space-y-2">
+          <label className="text-xs font-black text-slate-500 uppercase tracking-widest">
+            Description
           </label>
-          <textarea 
-            placeholder="Define execution parameters and technical checkpoints..."
-            value={formData.description} 
-            onChange={(e) => setFormData({...formData, description: e.target.value})}
-            className="w-full bg-background border border-border text-foreground px-6 py-5 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 transition-all font-bold h-36 resize-none shadow-inner text-lg"
+          <textarea
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            className="w-full bg-background border border-border px-4 py-4 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 font-bold h-28 resize-none"
+            placeholder="Task Description"
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          {/* PERSONNEL SEARCH */}
-          <div className="space-y-4 relative" ref={dropdownRef}>
-            <label className="flex items-center gap-3 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em] ml-1">
-              <User size={18} className="text-primary" /> Doer Name
-            </label>
-            <div className="relative group">
-              <input 
-                type="text" placeholder="Search staff database..."
-                value={searchTerm} onFocus={() => setShowDropdown(true)}
-                onChange={(e) => { setSearchTerm(e.target.value); setShowDropdown(true); }}
-                className={`w-full bg-background border ${formData.doerId ? 'border-emerald-500/50' : 'border-border'} text-foreground px-14 py-5 rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 transition-all font-black text-lg shadow-inner`}
-              />
-              <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={24} />
-              {searchTerm && <button type="button" onClick={clearSelection} className="absolute right-6 top-1/2 -translate-y-1/2 p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"><X size={20} /></button>}
-            </div>
-            {showDropdown && (
-              <div className="absolute z-[100] w-full mt-4 bg-card border border-border rounded-3xl shadow-2xl max-h-64 overflow-y-auto custom-scrollbar animate-in slide-in-from-top-2">
-                {employees.filter(e => e.name.toLowerCase().includes(searchTerm.toLowerCase())).map(emp => (
-                  <div key={emp._id} onClick={() => handleSelectEmployee(emp)} className="px-8 py-5 hover:bg-primary/10 cursor-pointer border-b border-border/50 last:border-0 flex flex-col transition-all">
-                    <span className="text-base font-black text-foreground uppercase">{emp.name}</span>
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{emp.department || 'Operations'}</span>
-                  </div>
-                ))}
-              </div>
+        {/* DOER */}
+        <div className="space-y-2 relative" ref={dropdownRef}>
+          <label className="text-xs font-black text-slate-500 uppercase tracking-widest">
+            Assign To
+          </label>
+
+          <div className="relative">
+            <input
+              type="text"
+              value={searchTerm}
+              onFocus={() => setShowDropdown(true)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setShowDropdown(true);
+              }}
+              className={`w-full bg-background border ${formData.doerId ? 'border-emerald-500/50' : 'border-border'} px-4 py-2 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 font-bold`}
+              placeholder="    Search employee..."
+            />
+            {/*<Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />*/}
+
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={clearSelection}
+                className="absolute right-3 top-1/2 -translate-y-1/2"
+              >
+                <X size={16} />
+              </button>
             )}
           </div>
 
-          {/* START DATE */}
-          <div className="space-y-4">
-            <label className="flex items-center gap-3 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.4em] ml-1">
-              <CalendarDays size={18} className="text-primary" /> Start Date
-            </label>
-            <DatePicker
-              selected={new Date(formData.startDate)}
-              onChange={(date) => setFormData({...formData, startDate: date.toISOString().split('T')[0]})}
-              minDate={new Date()}
-              dateFormat="dd MMMM, yyyy"
-              customInput={<CustomDateInput />}
-            />
-          </div>
+          {showDropdown && (
+            <div className="absolute z-50 w-full mt-2 bg-card border border-border rounded-xl shadow-xl max-h-52 overflow-y-auto custom-scrollbar">
+              {employees
+                .filter(e => e.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                .map(emp => (
+                  <div
+                    key={emp._id}
+                    onClick={() => handleSelectEmployee(emp)}
+                    className="px-4 py-3 hover:bg-primary/10 cursor-pointer border-b border-border/50"
+                  >
+                    <p className="font-bold">{emp.name}</p>
+                    <p className="text-xs text-slate-500">{emp.department}</p>
+                  </div>
+                ))}
+            </div>
+          )}
         </div>
 
-        {/* FREQUENCY SELECTION */}
-        <div className="space-y-6">
-          <label className="flex items-center gap-3 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.4em] ml-1">
-            <Repeat size={18} className="text-primary" /> Frequency
+      </div>
+
+      {/* ================= RIGHT ================= */}
+      <div className="space-y-6">
+
+        {/* START DATE */}
+        <div className="space-y-2">
+          <label className="text-xs font-black text-slate-500 uppercase tracking-widest">
+            Start Date:  <t></t>
           </label>
-          <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
+          <DatePicker
+  selected={new Date(formData.startDate)}
+  onChange={(date) =>
+    setFormData({ ...formData, startDate: date.toISOString().split('T')[0] })
+  }
+  minDate={new Date()}
+  dateFormat="dd MMM yyyy"
+  showYearDropdown
+  showMonthDropdown
+  dropdownMode="select"
+  customInput={<CustomDateInput />}
+/>
+        </div>
+
+        {/* FREQUENCY */}
+        <div className="space-y-2">
+          <label className="text-xs font-black text-slate-500 uppercase tracking-widest">
+            Frequency
+          </label>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Half-Yearly', 'Yearly'].map((freq) => (
               <button
-                key={freq} type="button"
-                onClick={() => setFormData({...formData, frequency: freq})}
-                className={`py-5 rounded-2xl border font-black text-[11px] uppercase tracking-widest transition-all active:scale-95 shadow-sm ${
-                  formData.frequency === freq 
-                    ? 'bg-primary text-primary-foreground border-primary shadow-lg' 
-                    : 'bg-background text-slate-500 border-border hover:border-slate-400'
+                key={freq}
+                type="button"
+                onClick={() => setFormData({ ...formData, frequency: freq })}
+                className={`py-3 rounded-xl text-xs font-black uppercase border transition-all ${
+                  formData.frequency === freq
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-background border-border text-slate-500'
                 }`}
               >
                 {freq}
@@ -230,75 +300,102 @@ const CreateChecklist = ({ tenantId }) => {
           </div>
         </div>
 
-        {/* DYNAMIC CONFIGURATION TERMINAL */}
+        {/* 🔥 DYNAMIC CONFIG */}
         {(formData.frequency === 'Weekly' || formData.frequency === 'Monthly') ? (
-            <div className="bg-background/50 p-8 rounded-[2rem] border border-border border-dashed space-y-8 animate-in zoom-in-95">
-                <h4 className="flex items-center gap-3 text-xs font-black text-foreground uppercase tracking-[0.3em]">
-                    <Settings2 size={18} className="text-primary" /> Multi-Instance Configuration: {formData.frequency}
-                </h4>
+          <div className="bg-background p-4 rounded-xl border border-border space-y-4">
 
-                {formData.frequency === 'Weekly' && (
-                    <div className="flex flex-wrap gap-4">
-                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
-                            <button
-                                key={day} type="button"
-                                onClick={() => toggleDayOfWeek(i)}
-                                className={`w-16 h-16 rounded-2xl font-black text-sm uppercase transition-all flex items-center justify-center border-2 ${
-                                    formData.frequencyConfig.daysOfWeek.includes(i)
-                                    ? 'bg-primary text-primary-foreground border-primary shadow-xl scale-110'
-                                    : 'bg-card text-slate-400 border-border hover:border-primary/50'
-                                }`}
-                            >
-                                {day}
-                            </button>
-                        ))}
-                    </div>
-                )}
+           {/* {formData.frequency === 'Weekly' && (
+              <div className="flex flex-wrap gap-2">
+                {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((day, i) => (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => toggleDayOfWeek(i)}
+                    className={`px-3 py-2 rounded-lg text-xs font-bold border ${
+                      formData.frequencyConfig.daysOfWeek.includes(i)
+                        ? 'bg-primary text-white'
+                        : 'bg-card border-border'
+                    }`}
+                  >
+                    {day}
+                  </button>
+                ))}
+              </div>
+            )}*/}
 
-                {formData.frequency === 'Monthly' && (
-                    <div className="grid grid-cols-7 sm:grid-cols-10 gap-3">
-                        {Array.from({ length: 31 }, (_, i) => i + 1).map((date) => (
-                            <button
-                                key={date} type="button"
-                                onClick={() => toggleDateOfMonth(date)}
-                                className={`aspect-square rounded-xl font-black text-xs transition-all flex items-center justify-center border-2 ${
-                                    formData.frequencyConfig.daysOfMonth.includes(date)
-                                    ? 'bg-emerald-500 text-white border-emerald-500 shadow-xl scale-110'
-                                    : 'bg-card text-slate-400 border-border hover:border-primary/50'
-                                }`}
-                            >
-                                {date}
-                            </button>
-                        ))}
-                    </div>
-                )}
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase italic flex items-center gap-2">
-                    <Check size={14} className="text-emerald-500" /> Authorized instances will be verified against the Initiation Date.
-                </p>
-            </div>
+
+            {formData.frequency === 'Weekly' && (
+              <div className="flex flex-wrap gap-2">
+                {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((day, i) => {
+  const isSunday = i === 0;
+  const isDisabled = isSunday && selectedEmployee && !selectedEmployee.workOnSunday;
+
+  return (
+    <button
+      key={day}
+      type="button"
+      disabled={isDisabled} // ✅ disable click
+      onClick={() => !isDisabled && toggleDayOfWeek(i)}
+      className={`px-3 py-2 rounded-lg text-xs font-bold border transition-all
+        ${formData.frequencyConfig.daysOfWeek.includes(i)
+          ? 'bg-primary text-white'
+          : 'bg-card border-border'}
+        ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}
+      `}
+    >
+      {day}
+    </button>
+  );
+})}
+              </div>
+            )}
+
+
+            {formData.frequency === 'Monthly' && (
+              <div className="grid grid-cols-7 gap-2">
+                {Array.from({ length: 31 }, (_, i) => i + 1).map(date => (
+                  <button
+                    key={date}
+                    type="button"
+                    onClick={() => toggleDateOfMonth(date)}
+                    className={`text-xs p-2 rounded-lg border ${
+                      formData.frequencyConfig.daysOfMonth.includes(date)
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-card border-border'
+                    }`}
+                  >
+                    {date}
+                  </button>
+                ))}
+              </div>
+            )}
+
+          </div>
         ) : (
-            /* MILESTONE ANCHOR INFO */
-            <div className="flex items-center gap-8 p-8 bg-background/50 rounded-[2rem] border border-border border-dashed">
-                <div className="p-4 bg-primary/10 rounded-2xl shadow-inner"><Clock className="text-primary" size={28} /></div>
-                <div>
-                    <p className="text-base font-black text-foreground uppercase tracking-widest mb-1">Anchor Lock Active</p>
-                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase leading-relaxed tracking-wider">
-                        Cycle anchored to <span className="text-foreground underline decoration-primary/50">{new Date(formData.startDate).toLocaleDateString('en-IN', {day: '2-digit', month: 'long', year: 'numeric'})}</span> with fixed {formData.frequency} intervals.
-                    </p>
-                </div>
-            </div>
+          <div className="bg-background p-4 rounded-xl border border-border text-xs font-bold text-slate-500">
+            Anchored to{" "}
+            <span className="text-foreground">
+              {new Date(formData.startDate).toLocaleDateString()}
+            </span>
+          </div>
         )}
 
-        {/* SUBMIT BUTTON */}
-        <button 
-          type="submit" disabled={loading}
-          className="w-full py-8 rounded-[2rem] bg-primary hover:bg-sky-400 text-primary-foreground font-black text-sm sm:text-base uppercase tracking-[0.4em] shadow-2xl transition-all flex items-center justify-center gap-6 active:scale-95 disabled:opacity-50"
-        >
-          {loading ? <RefreshCcw className="animate-spin" size={24} /> : <ShieldCheck size={24} />}
-          create checklist task
-        </button>
-      </form>
+      </div>
+
     </div>
+
+    {/* SUBMIT */}
+    <button
+      type="submit"
+      disabled={loading}
+      className="w-full mt-10 py-5 rounded-2xl bg-primary text-white font-black uppercase tracking-widest flex items-center justify-center gap-3"
+    >
+      {loading ? <RefreshCcw className="animate-spin" size={20} /> : <ShieldCheck size={20} />}
+      Create Task
+    </button>
+
+  </form>
+</div>
   );
 };
 
