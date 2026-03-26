@@ -193,7 +193,7 @@ const RegisteredEmployees = ({ employees, onEdit, fetchEmployees , onAddNew }) =
                 <th className="px-8 py-5">Operational Status</th>
                 <th className="px-8 py-5">Access Roles</th>
                 <th className="px-8 py-5">Authority Scope</th>
-                <th className="px-10 py-5 text-right pr-12">Intervention</th>
+                <th className="px-10 py-5 text-right pr-12">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50">

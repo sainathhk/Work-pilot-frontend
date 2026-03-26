@@ -244,8 +244,26 @@ const CoordinatorDashboard = ({ coordinatorId: propCoordId }) => {
     </div>
   );
 
+
+
+  /*
   const pendingCount = tasks.filter(t => (t.status === 'Pending' || t.status === 'Active') && (t.taskType !== 'Checklist' || getPendingInstances(t).length > 0)).length;
   const completedCount = tasks.filter(t => t.status === 'Completed' || t.status === 'Verified').length;
+
+
+  */
+
+  const pendingCount = filteredTasks.filter(
+  t =>
+    (t.status === 'Pending' || t.status === 'Active') &&
+    (t.taskType !== 'Checklist' || getPendingInstances(t).length > 0)
+).length;
+
+const completedCount = filteredTasks.filter(
+  t => t.status === 'Completed' || t.status === 'Verified'
+).length;
+
+
 
   return (
     <div className="w-full max-w-7xl mx-auto animate-in fade-in duration-700  selection:bg-primary/30 px-4">
@@ -260,7 +278,7 @@ const CoordinatorDashboard = ({ coordinatorId: propCoordId }) => {
           </div>
         </div>
         <button onClick={fetchTasks} className="group w-full md:w-auto bg-card hover:bg-background border border-border px-10 py-4 rounded-2xl text-foreground font-black text-[11px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 active:scale-95 shadow-xl">
-          <RefreshCcw size={16} className="group-hover:rotate-180 transition-transform duration-700 text-primary" /> Refresh Ledger
+          <RefreshCcw size={16} className="group-hover:rotate-180 transition-transform duration-700 text-primary" /> Refresh
         </button>
       </div>
 
@@ -276,7 +294,9 @@ const CoordinatorDashboard = ({ coordinatorId: propCoordId }) => {
         <div className="bg-card p-8 rounded-[2rem] border border-border shadow-2xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-5 text-primary group-hover:scale-110 transition-transform"><Layers size={60} /></div>
           <span className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em]">Total Directives</span>
-          <div className="text-3xl md:text-4xl font-black text-foreground mt-2 tracking-tighter">{tasks.length}</div>
+          {/*<div className="text-3xl md:text-4xl font-black text-foreground mt-2 tracking-tighter">{tasks.length}</div>*/}
+          <div className="text-3xl md:text-4xl font-black text-foreground mt-2 tracking-tighter">{filteredTasks.length}</div>
+
         </div>
         <div className="bg-card p-8 rounded-[2rem] border border-border shadow-2xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-5 text-red-500 group-hover:scale-110 transition-transform"><Clock size={60} /></div>
@@ -311,7 +331,7 @@ const CoordinatorDashboard = ({ coordinatorId: propCoordId }) => {
                 <th className=" w-[140px] px-8 py-6  text-[9px] font-black text-slate-500 uppercase tracking-[0.25em] text-center">Contact</th>
                 <th className=" w-[140px] px-8 py-6  text-[9px] font-black text-slate-500 uppercase tracking-[0.25em]">Next Target</th>
                 <th className=" w-[140px] px-8 py-6  text-[9px] font-black text-slate-500 uppercase tracking-[0.25em]">Ledger State</th>
-                <th className=" w-[200px] px-8 py-6  text-[9px] font-black text-slate-500 uppercase tracking-[0.25em] text-right">Actions</th>
+                <th className=" w-[150px] px-8 py-6  text-[9px] font-black text-slate-500 uppercase tracking-[0.25em] text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">

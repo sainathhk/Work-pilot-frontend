@@ -321,7 +321,7 @@ const AddEmployee = ({
           <div className="flex flex-col">
             <InputLabel
               icon={Lock}
-              label={isEditing ? "Reset Access Cipher" : "system access password"}
+              label={isEditing ? "Reset Password" : "system access password"}
             />
             <input
               type="text"

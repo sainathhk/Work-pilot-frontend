@@ -211,95 +211,109 @@ const ManageTasks = ({ assignerId, tenantId }) => {
 
       <div className="h-[600px] flex flex-col overflow-hidden rounded-xl border border-border ">
 
+<div className="w-full overflow-x-auto">
+  <div className="min-w-[700px]">
 
-      {/* GRID HEADER */}
-      <div className="hidden lg:grid grid-cols-[2.2fr_1fr_1fr_1fr_1.5fr] 
-px-10 py-6 bg-card backdrop-blur-xl 
-border border-border font-black text-slate-400 
-text-[11px] uppercase tracking-[0.25em] items-center 
-shadow-lg sticky top-0 z-20">
-        <div>Task Name</div>
-        {/*<div>Description</div>*/}
-        <div>Assigned To</div>
-        <div>Deadline</div>
-        <div>Status</div>
-        <div className="text-right pr-4">Action</div>
-      </div>
+    {/* GRID HEADER */}
+    <div className="grid grid-cols-[1.5fr_2fr_1fr_1fr_1fr] 
+      px-6 lg:px-10 py-5 bg-card backdrop-blur-xl border border-border 
+      font-black text-slate-400 text-[10px] lg:text-[11px]
+      uppercase tracking-[0.2em] items-center 
+      shadow-lg sticky top-0 z-20">
 
-      {/* DATA TERMINAL */}
-      <div className="flex-1 overflow-y-auto flex flex-col bg-background lg:bg-card border border-border rounded-b-[2.5rem] shadow-2xl">
-        {filteredTasks.map(task => {
-          const isRevision = task.status === 'Revision Requested';
-          const isExpanded = expandedTaskId === task._id;
-
-          return (
-            <div key={task._id} className="flex flex-col border-b border-border last:border-0 group transition-all duration-300">
-              <div
-                onClick={() => toggleExpand(task._id)}
-                className={`flex flex-col lg:grid lg:grid-cols-[2.2fr_1fr_1fr_1fr_1.5fr] items-start lg:items-center px-6 py-6 lg:px-10 lg:py-7 cursor-pointer transition-all hover:bg-primary/[0.02] dark:hover:bg-primary/[0.05] ${isExpanded ? 'bg-slate-100/60 dark:bg-primary/[0.08]' : ''} ${isRevision ? 'border-l-4 border-l-amber-500' : 'border-l-4 border-l-transparent'}`}
-              >
-                <div className="flex items-center gap-4 w-full lg:w-auto mb-3 lg:mb-0 min-w-0">
-                  <div className="shrink-0">
-                    {isExpanded ? <ChevronUp size={20} className="text-primary" /> : <ChevronDown size={20} className="text-slate-400 dark:text-slate-600" />}
-                  </div>
-                  <span className={`font-black text-sm lg:text-base uppercase tracking-tight truncate leading-tight ${isExpanded ? 'text-primary' : 'text-foreground'}`}>{task.title}</span>
-                </div>
-
-                {/*<div className="hidden lg:block text-slate-500 dark:text-slate-400 text-xs truncate pr-12 font-bold uppercase tracking-tight opacity-70 italic">{task.description || "No tactical details."}</div>*/}
-
-                <div className="flex items-center gap-3 text-slate-600 dark:text-slate-400 font-black text-[13px] uppercase tracking-tight mb-3 lg:mb-0">
-                  <div className="w-6 h-6 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-[10px] shadow-sm">{task.doerId?.name?.charAt(0).toUpperCase() || "U"}</div>
-                  {task.doerId?.name || 'Unassigned Node'}
-                </div>
-
-                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-500 font-bold text-[11px] mb-3 lg:mb-0">
-                  <Calendar size={14} className="text-primary/40" /> {task.deadline ? new Date(task.deadline).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'AWAITING'}
-                </div>
-
-                <div className="mb-4 lg:mb-0">
-                  <span className={`inline-flex px-3 py-1.5 rounded-lg font-black text-[8px] uppercase tracking-widest border shadow-sm ${task.status === 'Verified' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' :
-                    task.status === 'Completed' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' :
-                      'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20'}`}>
-                    {task.status || 'Active Node'}
-                  </span>
-                </div>
-
-               
-              <div className="flex justify-end gap-3 w-full lg:w-auto transition-all duration-300">
-  {task.status === 'Completed' && (
-    <div className="flex gap-2 w-full lg:w-auto">
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          handleVerifyTask(task._id, true);
-        }}
-        className="flex-1 lg:flex-none p-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-500/20 hover:bg-emerald-500 hover:text-white dark:hover:text-slate-950 transition-all active:scale-90 shadow-sm"
-      >
-        <CheckCircle size={18} />
-      </button>
-
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          handleVerifyTask(task._id, false);
-        }}
-        className="flex-1 lg:flex-none p-3 bg-red-500/5 text-red-600 dark:text-red-400 rounded-xl border border-red-500/20 hover:bg-red-500 hover:text-white transition-all active:scale-90 shadow-sm"
-      >
-        <XCircle size={18} />
-      </button>
+      <div>Task Name</div>
+      <div>Assigned To</div>
+      <div>Deadline</div>
+      <div>Status</div>
+      <div className="text-right pr-2 lg:pr-4">Action</div>
     </div>
-  )}
-  <button onClick={(e) => { e.stopPropagation(); handleCancelTask(task._id); }} className="flex-1 lg:flex-none p-3 bg-background border border-border text-slate-400 hover:bg-red-500/10 hover:text-red-500 rounded-xl transition-all active:scale-90">
+    
+    {filteredTasks.map(task => {
+      const isRevision = task.status === 'Revision Requested';
+      const isExpanded = expandedTaskId === task._id;
+
+      return (
+        <div
+          key={task._id}
+          className="border-b border-border last:border-0"
+        >
+          {/* ROW */}
+          <div
+            onClick={() => toggleExpand(task._id)}
+            className={`grid grid-cols-[1.5fr_2fr_1fr_1fr_1fr]  items-center px-6 py-5 cursor-pointer transition-all
+            hover:bg-primary/[0.03]
+            ${isExpanded ? 'bg-slate-100/60 dark:bg-primary/[0.08]' : ''}
+            ${isRevision ? 'border-l-4 border-l-amber-500' : 'border-l-4 border-l-transparent'}
+            `}
+          >
+            {/* TITLE */}
+            <div className="flex items-center gap-3 min-w-0">
+              {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+              <span className="font-black text-sm truncate">
+                {task.title}
+              </span>
+            </div>
+
+            {/* DOER */}
+            <div className="flex items-center gap-2 text-xs font-bold">
+              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px]">
+                {task.doerId?.name?.charAt(0)?.toUpperCase() || "U"}
+              </div>
+              {task.doerId?.name || 'Unassigned'}
+            </div>
+
+            {/* DEADLINE */}
+            <div className="text-xs font-bold">
+              {task.deadline
+                ? new Date(task.deadline).toLocaleDateString()
+                : 'AWAITING'}
+            </div>
+
+            {/* STATUS */}
+            <div>
+              <span className="text-[10px] px-2 py-1 rounded bg-sky-500/10">
+                {task.status}
+              </span>
+            </div>
+
+            {/* ACTIONS */}
+            <div className="flex gap-2 justify-end">
+              {task.status === 'Completed' && (
+                <>
+                  <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleVerifyTask(task._id, true);
+                        }}
+                    className="flex-1 lg:flex-none p-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-500/20 hover:bg-emerald-500 hover:text-white dark:hover:text-slate-950 transition-all active:scale-90 shadow-sm"
+                  >
+                  <CheckCircle size={18} />
+                  </button>
+
+                  <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleVerifyTask(task._id, false);
+                      }}
+                  className="flex-1 lg:flex-none p-3 bg-red-500/5 text-red-600 dark:text-red-400 rounded-xl border border-red-500/20 hover:bg-red-500 hover:text-white transition-all active:scale-90 shadow-sm"
+                    >
+                    <XCircle size={18} />
+                  
+                  </button>
+                </>
+              )}
+
+              <button onClick={(e) => { e.stopPropagation(); handleCancelTask(task._id); }} className="flex-1 lg:flex-none p-3 bg-background border border-border text-slate-400 hover:bg-red-500/10 hover:text-red-500 rounded-xl transition-all active:scale-90">
                   <Trash2 size={18} />
                 </button>
+            </div>
+          </div>
 
-</div>
-              </div>
-
-              {/* EXPANDED INTEL VIEW: UPDATED TO SHOW ASSIGNER AND PERFORMER NAMES */}
+          {/* EXPANDED SECTION (keep yours same) */}
+          {/* EXPANDED INTEL VIEW: UPDATED TO SHOW ASSIGNER AND PERFORMER NAMES */}
               {isExpanded && (
                   <div className="bg-background/80 backdrop-blur-xl border-t border-border animate-in slide-in-from-top-4 duration-500">
-                    {console.log(task)}
+                   
                   {/* 🔥 HEADER INSIDE EXPAND */}
                   <div className="px-6 lg:px-10 pt-6">
                     <h3
@@ -333,7 +347,7 @@ shadow-lg sticky top-0 z-20">
               </div>
               <div>
                 <strong className="text-slate-400 block text-[8px] font-black uppercase tracking-widest">
-                  Target
+                  Assigned to 
                 </strong>
                 <span className="text-foreground text-xs font-black uppercase break-words">
                   {task.doerId?.name}
@@ -415,6 +429,7 @@ shadow-lg sticky top-0 z-20">
               employees={employees}
               assignerId={currentAssignerId}
               onSuccess={fetchData}
+              source="manage"
             />
           )}
         </div>
@@ -461,17 +476,12 @@ shadow-lg sticky top-0 z-20">
       </div>
     </div>
   </div>
-)} 
-            </div>
-          );
-        })}
-        {filteredTasks.length === 0 && (
-          <div className="py-32 text-center flex flex-col items-center gap-6 opacity-30 grayscale transition-colors">
-            < LucideClipboard size={80} className="text-primary" />
-            <p className="text-slate-500 font-black uppercase tracking-[0.5em] text-[10px]">No Assigned Directives Detected</p>
-          </div>
-        )}
-      </div>
+)}
+        </div>
+      );
+    })}
+  </div>
+</div>
       </div>
 
       <style>{`

@@ -311,7 +311,7 @@ const [employees, setEmployees] = useState([]);
       <div className="hidden lg:grid grid-cols-[2.5fr_1fr_1fr_1fr] px-6 py-2.5 bg-slate-900 dark:bg-slate-950 rounded-t-lg border border-slate-800 font-black text-slate-400 text-[10px] uppercase tracking-[0.25em] items-center">
         <div>Mission Identifier</div>
         <div className="text-center">Protocol Date</div>
-        <div className="text-center">Priority / Node</div>
+        <div className="text-center">Priority / Status</div>
         <div className="text-right pr-4">Registry Action</div>
       </div>
 
@@ -364,10 +364,12 @@ const [employees, setEmployees] = useState([]);
                       <>
                       <button onClick={(e) => { e.stopPropagation(); API.put(`/tasks/respond`, { taskId: task._id, status: 'Accepted', doerId: currentDoerId }).then(fetchAllTasks); }} className="px-3 py-1 bg-primary text-white rounded font-black text-[8px] uppercase tracking-widest shadow-md active:scale-95 transition-all">Accept</button>
                       {/* 🔥 NEW REVISION BUTTON */}
+                      {task.isRevisionAllowed && (
                       <button onClick={(e) => { e.stopPropagation(); setSelectedTask(task);setShowRevisionModal(true);}}
                           className="px-3 py-1 bg-yellow-500 text-white rounded font-black text-[8px]">
                         Revise
                       </button>
+                      )}
                       </>
                     )}
                     {task.status === "Accepted" && (
@@ -696,6 +698,7 @@ const [employees, setEmployees] = useState([]);
           setShowRevisionModal(false);
           fetchAllTasks();
         }}
+        source="doer"
       />
     </div>
   </div>

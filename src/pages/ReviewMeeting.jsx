@@ -64,7 +64,6 @@ const ReviewMeeting = ({ tenantId }) => {
         params: { view: viewType, date: selectedDate }
       });
       setReportData(res.data?.report || []);
-      console.log(res.data)
     } catch (err) {
       console.error("Analytics fetch failed:", err);
       setReportData([]);
@@ -95,7 +94,6 @@ const ReviewMeeting = ({ tenantId }) => {
         params: { startDate: start, endDate: end }
       });
       setDeepDiveData(res.data || []);
-      console.log(res.data);
     } catch (err) {
       console.error("Deep Dive Error:", err);
     } finally {
@@ -196,6 +194,28 @@ const ReviewMeeting = ({ tenantId }) => {
     // Defaults to last week initially
     if (row.history.length > 0) fetchTaskDetails(row.employeeId, row.history[0].dates.start, row.history[0].dates.end, 0);
   };
+
+const [expandedChecklistId, setExpandedChecklistId] = useState(null);
+  const groupedChecklist = useMemo(() => {
+  const map = {};
+
+  deepDiveData.forEach(item => {
+    if (item.type === 'Checklist') {
+      if (!map[item.id]) {
+        map[item.id] = {
+          taskName: item.name,
+          instances: []
+        };
+      }
+      map[item.id].instances.push(item);
+    }
+  });
+
+  return Object.entries(map);
+}, [deepDiveData]);
+
+
+
 
   if (!isAdmin) return (
     <div className="w-full h-[70vh] flex flex-col items-center justify-center animate-in fade-in duration-500">
@@ -398,7 +418,7 @@ const ReviewMeeting = ({ tenantId }) => {
       {/* ================= WEEKLY SELECT ================= */}
       <div className="bg-white rounded-2xl shadow border p-4">
         <h4 className="text-xs font-black uppercase text-slate-500 mb-3">
-          Weekly Breakdown
+          Audit analysis
         </h4>
 
         <div className="overflow-x-auto">
@@ -510,7 +530,7 @@ const ReviewMeeting = ({ tenantId }) => {
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-[1100px] w-full text-xs">
-
+            
               <thead className="bg-slate-900 text-white text-[10px] uppercase">
                 <tr>
                   <th className="px-6 py-4 text-left">Mission</th>
@@ -523,7 +543,7 @@ const ReviewMeeting = ({ tenantId }) => {
               </thead>
 
               <tbody>
-                {deepDiveData.map((task, i) => {
+                {deepDiveData.filter(t => t.type === 'Delegation').map((task, i) => {
                   const isUnfinished = !task.completedAt;
 
                   const status =
@@ -538,7 +558,9 @@ const ReviewMeeting = ({ tenantId }) => {
                       }`}
                     >
                       <td className="px-6 py-4">
-                        <div className="font-bold">{task.name}</div>
+                        <div className="font-bold max-w-[200px] truncate" title={task.name}>
+                            {task.name}
+                        </div>
                         <div className="text-[10px] text-slate-400">
                           {task.description ||
                             "Operational standard protocol"}
@@ -609,7 +631,110 @@ const ReviewMeeting = ({ tenantId }) => {
                     </tr>
                   );
                 })}
-              </tbody>
+{groupedChecklist.map(([taskId, task], index) => {
+  const isOpen = expandedChecklistId === taskId;
+
+  return (
+    <React.Fragment key={taskId}>
+      
+      {/* ✅ MAIN ROW */}
+      <tr className="border-t bg-sky-50/30">
+        <td className="px-6 py-4 font-bold">
+          {task.taskName}
+        </td>
+
+        <td className="text-center text-slate-400">—</td>
+        <td className="text-center text-slate-400">—</td>
+        <td className="text-center text-slate-400">—</td>
+
+        <td className="text-center">
+          <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-[10px]">
+            CHECKLIST
+          </span>
+        </td>
+
+        <td className="text-center">
+          <div className="flex justify-center gap-2">
+            
+            {/* DROPDOWN */}
+            <button
+              onClick={() =>
+                setExpandedChecklistId(isOpen ? null : taskId)
+              }
+              className="p-2 bg-blue-100 rounded-lg"
+            >
+              {isOpen ? "▲" : "▼"}
+            </button>
+
+            {/* DELETE */}
+            <button
+              onClick={() => deleteTaskRecord(taskId, 'Checklist')}
+              className="p-2 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-xl transition"
+            >
+              <Trash2 size={14} />
+            </button>
+
+          </div>
+        </td>
+      </tr>
+
+      {/* ✅ EXPANDED ROW (SEPARATE TR) */}
+
+
+{isOpen && (
+        <tr>
+          <td colSpan="6">
+            <div className="p-3 bg-white border rounded-xl">
+
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-slate-100">
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Due</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {task.instances.map((inst, i) => (
+                    <tr key={i} className="border-t">
+                      <td>
+                        {new Date(inst.deadline).toLocaleDateString()}
+                      </td>
+
+                      <td>
+                        <span className={
+                          inst.status === "OVERDUE"
+                            ? "text-red-500"
+                            : inst.status === "LATE"
+                            ? "text-yellow-500"
+                            : "text-green-600"
+                        }>
+                          {inst.status}
+                        </span>
+                      </td>
+
+                      <td>
+                        {inst.completedAt
+                          ? new Date(inst.completedAt).toLocaleString()
+                          : "Pending"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+            </div>
+          </td>
+        </tr>
+)}
+
+
+
+    </React.Fragment>
+  );
+})}
+ </tbody>
 
             </table>
           </div>
@@ -620,6 +745,7 @@ const ReviewMeeting = ({ tenantId }) => {
   </div>
 </div>
       )}
+
 
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }

@@ -96,6 +96,7 @@ const ChecklistMonitor = ({ tenantId }) => {
       const res = await API.get(`/tasks/checklist-all/${currentTenantId}?force_sync=${Date.now()}`);
       const data = Array.isArray(res.data) ? res.data : (res.data?.data || []);
       setReport(data);
+      console.log(data);
     } catch (err) {
       console.error("Ledger Sync Failed:", err);
       setReport([]);
@@ -103,6 +104,7 @@ const ChecklistMonitor = ({ tenantId }) => {
       setLoading(false);
     }
   }, [currentTenantId]);
+
 
   useEffect(() => { fetchLiveStatus(); }, [fetchLiveStatus]);
 
@@ -318,18 +320,18 @@ const ChecklistMonitor = ({ tenantId }) => {
 </div>
 
       {/* DATA GRID */}
-      <div className="flex flex-col bg-card border border-border rounded-[2.5rem] overflow-hidden shadow-2xl transition-colors ">
-      <div className="flex-1 overflow-y-auto">
-        <div className="hidden lg:grid grid-cols-[1.5fr_1fr_0.8fr_1fr_1.2fr_1.2fr_0.4fr] px-6 py-8 bg-background/50 border-b border-border font-black text-slate-500 text-[12px] uppercase tracking-[0.25em] items-center sticky top-0 z-20">
-        {/*<div className="hidden lg:grid 
-    grid-cols-[1.5fr_1fr_0.8fr_1fr_1.2fr_1.2fr_0.4fr] 
-    px-6 py-8
-    bg-background/80 backdrop-blur-xl
-    border-b border-border 
-    font-black text-slate-500 text-[11px] uppercase tracking-[0.2em] 
-    items-center 
-    sticky top-0 z-20">*/}
-            <div>Task Name</div><div>Assigned to</div><div>Cycle</div><div>Monthly Activity</div><div>Last Log</div><div>Registry State</div><div className="text-right">Action</div>
+           <div className="h-[600px] flex flex-col overflow-hidden rounded-xl border border-border ">
+
+<div className="w-full overflow-x-auto">
+      <div className="min-w-[700px]">
+
+         {/* GRID HEADER */}
+        <div className="grid grid-cols-[1.2fr_2fr_0.8fr_1fr_1.2fr_1.2fr_0.4fr]
+            px-6 lg:px-10 py-5 bg-card backdrop-blur-xl border border-border 
+            font-black text-slate-400 text-[10px] lg:text-[11px]
+           uppercase tracking-[0.2em] items-center 
+          shadow-lg sticky top-0 z-20">
+            <div>Task Name</div><div>Assigned to</div><div>Cycle</div><div>Monthly<br></br>Activity</div><div>Last Log</div><div>Registry State</div><div className="text-right">Action</div>
         </div>
 
         {filteredReport.map(task => {
@@ -340,19 +342,19 @@ const ChecklistMonitor = ({ tenantId }) => {
 
           return (
             <div key={task._id} className={`flex flex-col border-b border-border last:border-0 transition-all ${status.isDone ? 'opacity-40 grayscale' : ''}`}>
-              <div onClick={() => setExpandedId(isExpanded ? null : task._id)} className={`grid grid-cols-1 lg:grid-cols-[1.5fr_1fr_0.8fr_1fr_1.2fr_1.2fr_0.4fr] items-center px-6 py-8 lg:px-10 cursor-pointer hover:bg-primary/[0.02]`}>
-                <div className={`font-black text-sm lg:text-base tracking-tight pr-4 text-foreground uppercase ${isExpanded ? 'whitespace-normal' : 'truncate'}`}>{task.taskName}</div>
-                <div className="hidden lg:block text-slate-500 text-xs font-black uppercase tracking-tight">{task.doerId?.name || 'Staff'}</div>
-                <div className="hidden lg:block text-slate-400 text-[10px] font-black uppercase tracking-widest">{task.frequency}</div>
-                <div className="mt-2 lg:mt-0 text-primary font-black text-[11px] uppercase tracking-tighter">{monthlySyncs} Syncs</div>
-                <div className="hidden lg:block text-xs text-slate-400 font-bold uppercase tracking-tighter">{task.lastCompleted ? new Date(task.lastCompleted).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : 'NONE'}</div>
-                <div className="flex items-center gap-2 mt-3 lg:mt-0">
+              <div onClick={() => setExpandedId(isExpanded ? null : task._id)} className={`grid grid-cols-1 grid-cols-[1.2fr_2fr_0.8fr_1fr_1.2fr_1.2fr_0.4fr] items-center px-6 py-8 lg:px-10 cursor-pointer hover:bg-primary/[0.02]`}>
+                <div className={`font-black text-sm text-base tracking-tight pr-4 text-foreground uppercase ${isExpanded ? 'whitespace-normal' : 'truncate'}`}>{task.taskName}</div>
+                <div className=" text-slate-500 text-xs font-black uppercase tracking-tight">{task.doerId?.name || 'Staff'}</div>
+                <div className=" text-slate-400 text-[10px] font-black uppercase tracking-widest">{task.frequency}</div>
+                <div className="mt-2 mt-0 text-primary font-black text-[11px] uppercase tracking-tighter">{monthlySyncs} Syncs</div>
+                <div className=" text-xs text-slate-400 font-bold uppercase tracking-tighter">{task.lastCompleted ? new Date(task.lastCompleted).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : 'NONE'}</div>
+                <div className="flex items-center gap-2 mt-3 mt-0">
                   <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border font-black text-[9px] uppercase tracking-widest ${status.bg} ${status.color} ${status.border}`}>{status.icon} {status.label}</span>
                   {instances.filter(i => i.isPast).length > 0 && (
                     <span className="text-[8px] font-black text-red-500 uppercase tracking-widest">+{instances.filter(i => i.isPast).length} MISSED</span>
                   )}
                 </div>
-                <div className="hidden lg:flex justify-end text-slate-400">{isExpanded ? <ChevronUp size={24} className="text-primary" /> : <ChevronDown size={24} />}</div>
+                <div className="flex justify-end text-slate-400">{isExpanded ? <ChevronUp size={24} className="text-primary" /> : <ChevronDown size={24} />}</div>
               </div>
 
               {isExpanded && (
@@ -550,6 +552,7 @@ const ChecklistMonitor = ({ tenantId }) => {
           );
         })}
         </div>
+      </div>
       </div>
 
       {/* MARK AS DONE MODAL */}

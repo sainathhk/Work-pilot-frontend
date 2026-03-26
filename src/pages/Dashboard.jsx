@@ -96,10 +96,24 @@ const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Persistence Logic
   const currentTenantId = tenantId || localStorage.getItem("tenantId");
-  const sessionUser = JSON.parse(localStorage.getItem("user"));
+
+
+/*
+  const [liveUser, setLiveUser] = useState(
+  JSON.parse(localStorage.getItem("user"))
+);
+
+
+const sessionUser = liveUser;
+
+*/
+
+
+  const sessionUser =JSON.parse(localStorage.getItem("user"));
+
   const userId = user?._id || user?.id || sessionUser?.id || sessionUser?._id;
 
-  const userRoles =
+ const userRoles =
     user?.roles ||
     sessionUser?.roles ||
     (user?.role ? [user.role] : []) ||
@@ -208,7 +222,48 @@ const [isModalOpen, setIsModalOpen] = useState(false);
     navigate(`/dashboard/${route}`);
     setSelectedEmployee(null);
   };
+/*
 
+
+
+
+const refreshUserProfile = useCallback(async () => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const res = await API.get(`/superadmin/auth/me`);
+
+    const updatedUser = res.data?.user || res.data;
+
+    // ✅ update storage
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+
+    // ✅ update state (THIS TRIGGERS UI)
+    setLiveUser(updatedUser);
+  } catch (err) {
+    console.error("User refresh failed", err);
+  }
+}, [currentTenantId]);
+
+
+
+
+useEffect(() => {
+  refreshUserProfile();
+}, [refreshUserProfile]);
+
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    refreshUserProfile();
+  }, 60000); // every 1 min
+
+  return () => clearInterval(interval);
+}, [refreshUserProfile]);
+
+
+*/
   /**
    * LEADERBOARD SUB-COMPONENT
    */

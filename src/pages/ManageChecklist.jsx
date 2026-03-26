@@ -301,7 +301,7 @@ const [selectedEmployee, setSelectedEmployee] = useState(null);
         <span className="text-center">#</span>
         <span>Title</span>
         <span>Assigned to</span>
-        <span>Brief</span>
+        <span >Description</span>
         <span className="text-center">Cycle</span>
         <span>Schedule</span>
         <span className="text-right">Actions</span>

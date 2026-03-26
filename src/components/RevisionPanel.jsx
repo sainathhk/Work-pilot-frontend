@@ -17,7 +17,16 @@ import {
  * Purpose: Handles deadline approvals or task reassignments with full theme adaptivity.
  * Logic: Includes automated date extraction from history remarks.
  */
-const RevisionPanel = ({ task, employees, assignerId, onSuccess  }) => {
+const RevisionPanel = ({ task, employees, assignerId, onSuccess, source  }) => {
+
+
+  const revisionLog = task?.history
+  ?.filter(h => h.action === "Revision Requested")
+  ?.slice(-1)[0];
+
+const reason = revisionLog?.remarks || "No reason provided";
+
+
   const [newDoerId, setNewDoerId] = useState('');
   const [reassignRemarks, setReassignRemarks] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -28,8 +37,10 @@ const RevisionPanel = ({ task, employees, assignerId, onSuccess  }) => {
 const currentUserId = user._id || user.id;
 
 
-  const isDoer = task?.doerId?._id === currentUserId;
-const isAssigner = task?.assignerId?._id === currentUserId; 
+  const isDoer = source === "doer";
+const isAssigner = source === "manage"; 
+
+
 const [doerRemarks, setDoerRemarks] = useState('');
 const [proposedDeadline, setProposedDeadline] = useState('');
 
@@ -81,12 +92,7 @@ const handleRequestRevision = async () => {
       
       // Safety Guard: Extract the date from the remarks string
       //let proposedDate = task.deadline; 
-      let proposedDate = task.proposedDeadline;
-      (console.log(task.proposedDeadline))
-      if (task.remarks && task.remarks.includes("Proposed Deadline:")) {
-          const extractedDate = task.remarks.split("Proposed Deadline: ")[1]?.split(".")[0];
-          if (extractedDate) proposedDate = extractedDate;
-      }
+      let proposedDate =reason.includes("Proposed Deadline:")? reason.split("Proposed Deadline: ")[1]: task?.proposedDeadline;
       
       await API.post(`/tasks/handle-revision`, {
         taskId: task._id,
@@ -178,7 +184,8 @@ const handleRequestRevision = async () => {
                 <MessageSquare size={12} className="text-amber-500" /> Doer Node Statement
             </div>
             <p className="text-slate-600 dark:text-slate-300 text-xs md:text-sm font-bold leading-relaxed italic uppercase tracking-tight">
-                "{task.remarks || "Standard revision requested without additional context."}"
+                {/*"{task.remarks || "Standard revision requested without additional context."}"*/}
+                {reason}
             </p>
         </div>
 

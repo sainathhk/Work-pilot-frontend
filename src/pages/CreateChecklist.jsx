@@ -58,6 +58,53 @@ const CreateChecklist = ({ tenantId }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+
+  const [holidayList, setHolidayList] = useState([]);
+
+
+  const fetchSettings = useCallback(async () => {
+    if (!currentTenantId) return;
+    try {
+      setLoading(true);
+      const res = await API.get(`/superadmin/settings/${currentTenantId}`);
+      const data = res.data?.settings || res.data;
+      
+      if (data) {
+        setHolidayList(Array.isArray(data.holidays) ? data.holidays : []);
+      }
+    } catch (err) {
+      console.error("Fetch failure:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentTenantId]);
+
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
+
+
+  const holidayDates = holidayList.map(h => new Date(h.date));
+
+// 🔥 Map for quick lookup (for tooltip)
+const holidayMap = {};
+holidayList.forEach(h => {
+  const key = new Date(h.date).toDateString();
+  holidayMap[key] = h.name;
+});
+
+
+const isHoliday = (date) =>
+  holidayDates.some(
+    h => h.toDateString() === date.toDateString()
+  );
+
+const isDisabledDate = (date) =>
+  isHoliday(date) ||
+  (selectedEmployee && !selectedEmployee.workOnSunday && isSunday(date));
+
+
+
   const fetchEmployees = useCallback(async () => {
     if (!currentTenantId) return;
     try {
@@ -273,6 +320,33 @@ const CreateChecklist = ({ tenantId }) => {
   showMonthDropdown
   dropdownMode="select"
   customInput={<CustomDateInput />}
+
+   filterDate={(date) => !isDisabledDate(date)}
+   highlightDates={[
+  {
+    "react-datepicker__day--holiday": holidayDates
+  }
+  ]}
+  dayClassName={(date) => {
+    const key = date.toDateString();
+
+    if (holidayMap[key]) {
+      return "holiday-day";
+    }
+
+    return "";
+  }}
+  renderDayContents={(day, date) => {
+    const key = date.toDateString();
+    const holidayName = holidayMap[key];
+
+    return (
+      <span title={holidayName || ""}>
+        {day}
+      </span>
+    );
+  }}
+
 />
         </div>
 
@@ -373,7 +447,7 @@ const CreateChecklist = ({ tenantId }) => {
           </div>
         ) : (
           <div className="bg-background p-4 rounded-xl border border-border text-xs font-bold text-slate-500">
-            Anchored to{" "}
+            Start Date {" "}
             <span className="text-foreground">
               {new Date(formData.startDate).toLocaleDateString()}
             </span>

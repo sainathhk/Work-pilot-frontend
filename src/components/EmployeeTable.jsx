@@ -94,7 +94,7 @@ const EmployeeTable = ({ tenantId, onEdit ,onAddNew }) => {
               <th className="px-6 py-5">Access Clearances</th>
               <th className="px-6 py-5">Linkage States</th>
               <th className="px-6 py-5">Contact Node</th>
-              <th className="px-6 py-5 sm:px-10 text-right">Intervention</th>
+              <th className="px-6 py-5 sm:px-10 text-right">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">

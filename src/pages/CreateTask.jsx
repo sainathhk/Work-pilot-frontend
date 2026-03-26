@@ -74,6 +74,61 @@ const CreateTask = ({ tenantId, assignerId, employees: initialEmployees }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+
+
+
+
+
+  
+
+  const [holidayList, setHolidayList] = useState([]);
+
+
+  const fetchSettings = useCallback(async () => {
+    if (!currentTenantId) return;
+    try {
+      setLoading(true);
+      const res = await API.get(`/superadmin/settings/${currentTenantId}`);
+      const data = res.data?.settings || res.data;
+      
+      if (data) {
+        setHolidayList(Array.isArray(data.holidays) ? data.holidays : []);
+      }
+    } catch (err) {
+      console.error("Fetch failure:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentTenantId]);
+
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
+
+
+  const holidayDates = holidayList.map(h => new Date(h.date));
+
+// 🔥 Map for quick lookup (for tooltip)
+const holidayMap = {};
+holidayList.forEach(h => {
+  const key = new Date(h.date).toDateString();
+  holidayMap[key] = h.name;
+});
+
+
+const isHoliday = (date) =>
+  holidayDates.some(
+    h => h.toDateString() === date.toDateString()
+  );
+const isDisabledDate = (date) =>
+  isHoliday(date);
+
+
+
+
+
+
+
   const fetchMyTeam = useCallback(async () => {
     if (!currentAssignerId) return;
     try {
@@ -344,6 +399,32 @@ const CreateTask = ({ tenantId, assignerId, employees: initialEmployees }) => {
   yearDropdownItemNumber={50}
 
   className="w-full mt-1 px-15 py-2.5 rounded-lg border border-border bg-background/70 text-sm focus:ring-2 focus:ring-primary/30"
+    filterDate={(date) => !isDisabledDate(date)}
+   highlightDates={[
+  {
+    "react-datepicker__day--holiday": holidayDates
+  }
+  ]}
+  dayClassName={(date) => {
+    const key = date.toDateString();
+
+    if (holidayMap[key]) {
+      return "holiday-day";
+    }
+
+    return "";
+  }}
+  renderDayContents={(day, date) => {
+    const key = date.toDateString();
+    const holidayName = holidayMap[key];
+
+    return (
+      <span title={holidayName || ""}>
+        {day}
+      </span>
+    );
+  }}
+
 />
             </div>
 
