@@ -202,7 +202,6 @@ const isNonWorkingDay = (date) => {
         API.get(`/superadmin/employees/${currentTenantId}`).catch(() => ({ data: [] })),
         API.get(`/superadmin/settings/${currentTenantId}`).catch(() => ({ data: {} }))
       ]);
-      console.log(checkRes);
       setChecklists(Array.isArray(checkRes.data) ? checkRes.data : (checkRes.data?.data || []));
       setEmployees((Array.isArray(empRes.data) ? empRes.data : (empRes.data?.employees || empRes.data?.data || [])).filter(e => {
         const roles = Array.isArray(e.roles) ? e.roles : [e.role || ''];

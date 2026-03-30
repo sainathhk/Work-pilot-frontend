@@ -490,7 +490,6 @@ const auditStats = useMemo(() => {
                 <th className="px-4 py-3 text-center">Done</th>
                 <th className="px-4 py-3 text-center">Overdue</th>
                 <th className="px-4 py-3 text-center">Not Done (%)</th>
-                <th className="px-4 py-3 text-center">Audit</th>
               </tr>
             </thead>
              
@@ -520,15 +519,6 @@ const auditStats = useMemo(() => {
         : 0
       }% ({auditStats.notDone})
     </td>
-
-    <td className="text-center">
-      <button
-        className="p-2 rounded-lg bg-background text-foreground border border-border"
-      >
-        <Search size={14} />
-      </button>
-    </td>
-
   </tr>
 </tbody>
 

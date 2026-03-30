@@ -99,7 +99,6 @@ const ManageTasks = ({ assignerId, tenantId }) => {
           ? API.get(`/superadmin/employees/${currentTenantId}`).catch(() => ({ data: [] }))
           : Promise.resolve({ data: [] })
       ]);
-      console.log(taskRes);
 
       const rawTaskData = Array.isArray(taskRes.data)
         ? taskRes.data
