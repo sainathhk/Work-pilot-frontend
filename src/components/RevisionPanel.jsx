@@ -151,6 +151,7 @@ const handleRequestRevision = async () => {
     <input
       type="date"
       value={proposedDeadline}
+      placeholder="Proposed deadline"
       onChange={(e) => setProposedDeadline(e.target.value)}
       className="w-full p-4 border rounded-xl"
     />
@@ -169,7 +170,7 @@ const handleRequestRevision = async () => {
       <div className="px-6 py-5 bg-amber-500/10 border-b border-amber-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
             <AlertTriangle className="text-amber-600 dark:text-amber-500" size={20} />
-            <h4 className="text-amber-700 dark:text-amber-500 text-[10px] md:text-xs font-black uppercase tracking-[0.2em] m-0 leading-tight">Intervention Protocol: Revision Request</h4>
+            <h4 className="text-amber-700 dark:text-amber-500 text-[10px] md:text-xs font-black uppercase tracking-[0.2em] m-0 leading-tight">Intervention: Revision Request Raised</h4>
         </div>
         <div className="bg-amber-500/20 px-3 py-1 rounded-full border border-amber-500/20 shrink-0">
             <span className="text-[9px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest">Decision Pending</span>
@@ -181,9 +182,9 @@ const handleRequestRevision = async () => {
         {/* Request Details Block */}
         <div className="bg-background/80 backdrop-blur-sm p-5 rounded-2xl border border-amber-500/10 space-y-3 shadow-inner">
             <div className="flex items-center gap-2 text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-                <MessageSquare size={12} className="text-amber-500" /> Doer Node Statement
+                <MessageSquare size={12} className="text-amber-500" /> Doer Statement To Revise 
             </div>
-            <p className="text-slate-600 dark:text-slate-300 text-xs md:text-sm font-bold leading-relaxed italic uppercase tracking-tight">
+            <p className="text-slate-600 dark:text-slate-500 text-xs md:text-sm font-bold leading-relaxed italic uppercase tracking-tight">
                 {/*"{task.remarks || "Standard revision requested without additional context."}"*/}
                 {reason}
             </p>
@@ -238,7 +239,7 @@ const handleRequestRevision = async () => {
                 <div className="relative group">
                     <History className="absolute left-5 top-5 text-slate-400 group-focus-within:text-primary transition-colors" size={18} />
                     <textarea 
-                        placeholder="Log reasoning for rerouting (transmitted to new node)..." 
+                        placeholder="Add message To The New Doer..." 
                         value={reassignRemarks}
                         onChange={(e) => setReassignRemarks(e.target.value)}
                         className="w-full bg-background border border-border text-foreground pl-14 pr-6 py-4 rounded-2xl text-[11px] md:text-xs font-black uppercase tracking-tight outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all min-h-[100px] resize-none shadow-inner placeholder:text-slate-400 dark:placeholder:text-slate-700"

@@ -206,7 +206,7 @@ const [employees, setEmployees] = useState([]);
         await API.put(`/tasks/respond`, formData);
       }
 
-      alert("Success: Mission telemetry synced.");
+      alert("Success: Mission Data synced.");
       setShowModal(false);
       setRemarks("");
       setSelectedFile(null);
@@ -237,7 +237,7 @@ const [employees, setEmployees] = useState([]);
             <ClipboardCheck size={20} className="text-primary" />
           </div>
           <div>
-            <h2 className="text-foreground text-lg md:text-xl font-black tracking-tighter uppercase leading-none">Task Ledger</h2>
+            <h2 className="text-foreground text-lg md:text-xl font-black tracking-tighter uppercase leading-none">Task Hub</h2>
             <p className="text-slate-500 text-[8px] font-black uppercase tracking-widest mt-1 opacity-60">Session Active: {new Date().toLocaleDateString()}</p>
           </div>
         </div>

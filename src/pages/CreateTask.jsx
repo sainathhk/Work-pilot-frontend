@@ -424,7 +424,6 @@ const isDisabledDate = (date) =>
       </span>
     );
   }}
-
 />
             </div>
 
@@ -468,10 +467,10 @@ const isDisabledDate = (date) =>
         {/* FOOTER */}
         <div className="flex items-center justify-between pt-4 border-t border-border">
 
-          <label className="flex items-center gap-2 text-sm text-slate-600">
+          <label className="flex items-center gap-2 text-xl text-slate-600">
             <input
               type="checkbox"
-              className="accent-primary"
+              className="accent-primary "
               checked={task.isRevisionAllowed}
               onChange={(e) =>
                 setTask({ ...task, isRevisionAllowed: e.target.checked })

@@ -96,7 +96,6 @@ const ChecklistMonitor = ({ tenantId }) => {
       const res = await API.get(`/tasks/checklist-all/${currentTenantId}?force_sync=${Date.now()}`);
       const data = Array.isArray(res.data) ? res.data : (res.data?.data || []);
       setReport(data);
-      console.log(data);
     } catch (err) {
       console.error("Ledger Sync Failed:", err);
       setReport([]);
@@ -320,7 +319,7 @@ const ChecklistMonitor = ({ tenantId }) => {
 </div>
 
       {/* DATA GRID */}
-           <div className="h-[600px] flex flex-col overflow-hidden rounded-xl border border-border ">
+           <div className="h-[550px] flex flex-col overflow-hidden rounded-xl border border-border ">
 
 <div className="w-full overflow-x-auto">
       <div className="min-w-[700px]">

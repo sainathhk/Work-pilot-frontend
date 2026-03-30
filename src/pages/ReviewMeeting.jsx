@@ -22,7 +22,8 @@ import {
   CalendarDays,
   ShieldAlert,
   Lock,
-  PlayCircle // Added for Custom Run icon
+  PlayCircle ,
+   ChevronDown, ChevronUp
 } from 'lucide-react';
 import RevisionPanel from '../components/RevisionPanel'; 
 
@@ -52,6 +53,15 @@ const ReviewMeeting = ({ tenantId }) => {
 
   const user = JSON.parse(localStorage.getItem('user')) || {};
   const currentTenantId = tenantId || localStorage.getItem('tenantId');
+
+
+
+
+  const [expandedChecklistIds, setExpandedChecklistIds] = useState([]);
+
+
+
+
 
   const isAdmin = user.roles?.includes('Admin') || user.role === 'Admin';
 
@@ -217,19 +227,68 @@ const [expandedChecklistId, setExpandedChecklistId] = useState(null);
 
 
 
+
+
+
+const auditStats = useMemo(() => {
+  if (!deepDiveData || deepDiveData.length === 0) {
+    return { total: 0, done: 0, overdue: 0, notDone: 0 };
+  }
+
+  // 🔹 DELEGATION
+  if (activePerson?.type === "Delegation") {
+    const filtered = deepDiveData.filter(t => t.type === "Delegation");
+
+    const total = filtered.length;
+    const done = filtered.filter(t => t.completedAt).length;
+    const overdue = filtered.filter(t => t.status === "OVERDUE").length;
+    const notDone = total - done;
+
+    return { total, done, overdue, notDone };
+  }
+
+  // 🔹 CHECKLIST (IMPORTANT)
+  if (activePerson?.type === "Checklist") {
+    let total = 0;
+    let done = 0;
+    let overdue = 0;
+
+    groupedChecklist.forEach(([_, task]) => {
+      task.instances.forEach(inst => {
+        total++;
+
+        if (inst.completedAt) done++;
+        if (inst.status === "OVERDUE") overdue++;
+      });
+    });
+
+    const notDone = total - done;
+
+    return { total, done, overdue, notDone };
+  }
+
+  return { total: 0, done: 0, overdue: 0, notDone: 0 };
+}, [deepDiveData, groupedChecklist, activePerson]);
+
+
+
+
+
+
+
   if (!isAdmin) return (
     <div className="w-full h-[70vh] flex flex-col items-center justify-center animate-in fade-in duration-500">
-      <div className="bg-white p-12 rounded-[3rem] border-2 border-slate-200 shadow-2xl flex flex-col items-center text-center max-w-lg space-y-6">
+      <div className="bg-card p-12 rounded-[3rem] border-2 border-border shadow-2xl flex flex-col items-center text-center max-w-lg space-y-6">
          <div className="bg-red-50 p-6 rounded-full border-4 border-red-100 shadow-inner">
             <Lock className="text-red-500" size={60} strokeWidth={1.5} />
          </div>
          <div>
-            <h3 className="text-slate-950 text-2xl font-black uppercase tracking-tighter">Access Restricted</h3>
-            <p className="text-slate-500 font-bold uppercase text-[10px] tracking-[0.2em] mt-2 italic">
+            <h3 className="text-foreground text-2xl font-black uppercase tracking-tighter">Access Restricted</h3>
+            <p className="text-muted-foreground font-bold uppercase text-[10px] tracking-[0.2em] mt-2 italic">
                The Review Meeting module is reserved for Executive Admin Personnel only.
             </p>
          </div>
-         <div className="bg-slate-50 px-6 py-3 rounded-2xl border border-slate-200 text-slate-400 text-[9px] font-black uppercase tracking-widest">
+         <div className="bg-background px-6 py-3 rounded-2xl border border-border text-slate-400 text-[9px] font-black uppercase tracking-widest">
             Security Protocol: Node-Identity Verification Failed
          </div>
       </div>
@@ -249,45 +308,45 @@ const [expandedChecklistId, setExpandedChecklistId] = useState(null);
       {/* MAIN PAGE HEADER */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
         <div className="flex items-center gap-5">
-          <div className="bg-slate-950 p-4 rounded-xl shadow-lg"><BarChart3 className="text-white" size={32} /></div>
+          <div className="bg-primary p-4 rounded-xl shadow-lg"><BarChart3 className="text-white" size={32} /></div>
           <div>
-            <h2 className="text-slate-950 text-3xl font-black tracking-tighter uppercase leading-none">Review Meeting</h2>
+            <h2 className="text-foreground text-3xl font-black tracking-tighter uppercase leading-none">Review Meeting</h2>
             <p className="text-slate-600 text-sm font-bold uppercase tracking-widest mt-1 italic opacity-70">Live Compliance Ledger</p>
           </div>
         </div>
-        <button onClick={fetchAnalytics} className="bg-white border-2 border-slate-950 px-8 py-3 rounded-xl text-slate-950 font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center gap-3 active:scale-95 shadow-md">
+        <button onClick={fetchAnalytics} className="bg-card border-2 border-slate-950 px-8 py-3 rounded-xl text-foreground font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center gap-3 active:scale-95 shadow-md">
           <RefreshCcw size={18} /> Refresh
         </button>
       </div>
 
       {/* MAIN FILTERS */}
-      <div className="bg-slate-50 p-6 rounded-[2.5rem] border-2 border-slate-200 mb-10 space-y-6 shadow-sm">
+      <div className="bg-card p-6 border border-border rounded-[2.5rem] mb-10 space-y-6 shadow-sm">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="relative">
-            <input type="text" placeholder="Identity or Dept..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-white border-2 border-slate-200 text-slate-950 px-12 py-3 rounded-2xl outline-none focus:border-slate-950 transition-all font-black text-sm shadow-inner" />
+            <input type="text" placeholder="Identity or Dept..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-background border border-border text-foreground px-12 py-3 rounded-2xl outline-none focus:border-slate-950 transition-all font-black text-sm shadow-inner" />
             <Search size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
           </div>
-          <div className="flex bg-white p-1 rounded-2xl border-2 border-slate-200 shadow-inner">
+          <div className="flex bg-card p-1 rounded-2xl border-2 border-border shadow-inner">
              {['All', 'Delegation', 'Checklist'].map(cat => (
-               <button key={cat} onClick={() => setTaskCategory(cat)} className={`flex-1 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${taskCategory === cat ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-slate-950'}`}>{cat}</button>
+               <button key={cat} onClick={() => setTaskCategory(cat)} className={`flex-1 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${taskCategory === cat ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-foreground'}`}>{cat}</button>
              ))}
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-6">
-          <div className="flex bg-white p-1 rounded-2xl border-2 border-slate-200 shadow-inner max-w-md">
+        {/*<div className="grid grid-cols-1 gap-6">
+          <div className="flex bg-card p-1 rounded-2xl border-2 border-border shadow-inner max-w-md">
             {['All', 'Daily', 'Weekly', 'Monthly'].map(tab => (
               <button key={tab} onClick={() => setViewType(tab)} className={`flex-1 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${viewType === tab ? 'bg-slate-950 text-white shadow-lg' : 'text-slate-400 hover:text-slate-950'}`}>{tab}</button>
             ))}
           </div>
-        </div>
+        </div>*/}
       </div>
 
       {/* SUMMARY TABLE */}
-      <div className="bg-white border-2 border-slate-200 rounded-[2.5rem] shadow-2xl border-b-8 border-b-slate-900 overflow-hidden relative">
+      <div className="bg-card border border-border rounded-[2.5rem] shadow-2xl border-b-8 border-b-slate-900 overflow-hidden relative">
         <div className="max-h-[700px] overflow-auto custom-scrollbar">
           <table className="w-full text-left border-collapse min-w-[1600px]">
-            <thead className="sticky top-0 z-40 bg-slate-900">
-              <tr className="text-white text-[10px] font-black uppercase tracking-[0.2em]">
+            <thead className="sticky top-0 z-40 bg-background text-foreground border-b border-border">
+              <tr className="text-foreground text-[10px] font-black uppercase tracking-[0.2em] ">
                 <th className="px-6 py-6 border-r border-slate-700 text-center w-20">NO.</th>
                 <th className="px-6 py-6 border-r border-slate-700">PERSONNEL IDENTITY</th>
                 <th className="px-6 py-6 border-r border-slate-700 text-center">LATE TARGET (%)</th>
@@ -304,24 +363,24 @@ const [expandedChecklistId, setExpandedChecklistId] = useState(null);
               {summaryRows.map((row, index) => {
                 const isOverTarget = parseFloat(getPercentage(row.late, row.total)) > row.lateTarget;
                 return (
-                  <tr key={row.rowId} className="cursor-pointer hover:bg-slate-50 transition-all group">
-                    <td onClick={() => openHistoryModal(row)} className="px-6 py-5 border-r border-slate-200 text-center text-[10px] font-black text-slate-400 group-hover:text-primary">{String(index + 1).padStart(2, '0')}</td>
-                    <td onClick={() => openHistoryModal(row)} className="px-6 py-5 border-r border-slate-200 font-black text-slate-950 text-xs uppercase flex items-center gap-4">
+                  <tr key={row.rowId} className="cursor-pointer hover:bg-primary/5 transition-all group">
+                    <td onClick={() => openHistoryModal(row)} className="px-6 py-5 border-r border-border text-center text-[10px] font-black text-slate-400 group-hover:text-primary">{String(index + 1).padStart(2, '0')}</td>
+                    <td onClick={() => openHistoryModal(row)} className="px-6 py-5 border-r border-border font-black text-foreground text-xs uppercase flex items-center gap-4">
                         <ChevronRight size={16} className="text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all" />
                         {row.name}
                     </td>
-                    <td className="px-6 py-5 border-r border-slate-200 text-center">
-                       <input type="number" defaultValue={row.lateTarget} onBlur={(e) => saveTarget(row.employeeId, e.target.value)} className="w-16 bg-slate-100 border-2 border-slate-200 rounded-lg text-center font-black text-xs py-1 focus:border-primary outline-none" />
+                    <td className="px-6 py-5 border-r border-border text-center">
+                       <input type="number" defaultValue={row.lateTarget} onBlur={(e) => saveTarget(row.employeeId, e.target.value)} className="w-16 bg-background border-2 border-border rounded-lg text-center font-black text-xs py-1 focus:border-primary outline-none" />
                     </td>
-                    <td onClick={() => openHistoryModal(row)} className="px-6 py-5 border-r border-slate-200 text-[10px] font-black uppercase text-slate-500">{row.dept}</td>
-                    <td onClick={() => openHistoryModal(row)} className="px-6 py-5 border-r border-slate-200 text-left">
+                    <td onClick={() => openHistoryModal(row)} className="px-6 py-5 border-r border-border text-[10px] font-black uppercase text-muted-foreground">{row.dept}</td>
+                    <td onClick={() => openHistoryModal(row)} className="px-6 py-5 border-r border-border text-left">
                       <span className={`px-3 py-1 rounded text-[9px] font-black uppercase border-2 ${row.type === 'Checklist' ? 'bg-sky-50 text-sky-700 border-sky-200' : 'bg-purple-50 text-purple-700 border-purple-200'}`}>{row.type}</span>
                     </td>
-                    <td onClick={() => openHistoryModal(row)} className="px-6 py-5 border-r border-slate-200 text-center font-black text-xs">{row.total}</td>
-                    <td onClick={() => openHistoryModal(row)} className="px-6 py-5 border-r border-slate-200 text-center font-black text-xs text-emerald-600">{row.done}</td>
-                    <td onClick={() => openHistoryModal(row)} className="px-6 py-5 border-r border-slate-200 text-center font-black text-xs text-red-600">{row.overdue}</td>
-                    <td onClick={() => openHistoryModal(row)} className={`px-6 py-5 border-r border-slate-200 text-center font-black text-[11px] ${isOverTarget ? 'text-amber-600 bg-amber-50/50' : 'text-slate-400'}`}>{getPercentage(row.late, row.total)} {isOverTarget && <ArrowUpRight size={12} className="inline ml-1" />}</td>
-                    <td onClick={() => openHistoryModal(row)} className={`px-6 py-5 text-center font-black text-[11px] ${parseFloat(getPercentage(row.notDone, row.total)) > 20 ? 'text-red-600 bg-red-50/50' : 'text-slate-900'}`}>{getPercentage(row.notDone, row.total)} ({row.notDone})</td>
+                    <td onClick={() => openHistoryModal(row)} className="px-6 py-5 border-r border-border text-center font-black text-xs">{row.total}</td>
+                    <td onClick={() => openHistoryModal(row)} className="px-6 py-5 border-r border-border text-center font-black text-xs text-emerald-600">{row.done}</td>
+                    <td onClick={() => openHistoryModal(row)} className="px-6 py-5 border-r border-border text-center font-black text-xs text-red-600">{row.overdue}</td>
+                    <td onClick={() => openHistoryModal(row)} className={`px-6 py-5 border-r border-border text-center font-black text-[11px] ${isOverTarget ? 'text-amber-600 bg-amber-50/50' : 'text-slate-400'}`}>{getPercentage(row.late, row.total)} {isOverTarget && <ArrowUpRight size={12} className="inline ml-1" />}</td>
+                    <td onClick={() => openHistoryModal(row)} className={`px-6 py-5 text-center font-black text-[11px] ${parseFloat(getPercentage(row.notDone, row.total)) > 20 ? 'text-red-600 bg-red-50/50' : 'text-foreground'}`}>{getPercentage(row.notDone, row.total)} ({row.notDone})</td>
                   </tr>
                 );
               })}
@@ -341,10 +400,10 @@ const [expandedChecklistId, setExpandedChecklistId] = useState(null);
   />
 
   {/* MODAL */}
-  <div className="relative w-full max-w-[96vw] h-[94vh] bg-white rounded-[2rem] shadow-2xl flex flex-col overflow-hidden border border-white/20">
+  <div className="relative w-full max-w-[96vw] h-[94vh] bg-card rounded-[2rem] border border-border shadow-2xl flex flex-col overflow-hidden border border-white/20">
 
     {/* ================= HEADER ================= */}
-    <div className="sticky top-0 z-50 bg-slate-900 text-white px-6 py-5 flex justify-between items-center border-b border-white/10">
+    <div className="sticky top-0 z-50 bg-background text-foreground border-b border-border px-6 py-5 flex justify-between items-center border-b border-white/10">
 
       <div className="flex items-center gap-4">
         <div className="bg-primary/20 p-3 rounded-xl">
@@ -363,18 +422,18 @@ const [expandedChecklistId, setExpandedChecklistId] = useState(null);
 
       <button
         onClick={() => setShowModal(false)}
-        className="bg-white/10 hover:bg-red-500 p-2 rounded-xl transition"
+        className="bg-card/10 hover:bg-red-500 p-2 rounded-xl transition"
       >
         <X size={18} />
       </button>
     </div>
 
     {/* ================= FILTER BAR ================= */}
-    <div className="sticky top-[72px] z-40 bg-white border-b px-6 py-4 flex flex-wrap items-center gap-4">
+    <div className="sticky top-[72px] z-40 bg-card border-b border-border px-6 py-4 flex flex-wrap items-center gap-4">
 
       <div className="flex items-center gap-2">
         <Calendar size={16} className="text-primary" />
-        <span className="text-xs font-bold uppercase text-slate-500">
+        <span className="text-xs font-bold uppercase text-muted-foreground">
           Date Range
         </span>
       </div>
@@ -407,24 +466,24 @@ const [expandedChecklistId, setExpandedChecklistId] = useState(null);
         Run Audit
       </button>
 
-      <div className="ml-auto text-xs font-bold text-slate-500">
+      <div className="ml-auto text-xs font-bold text-muted-foreground">
         {deepDiveData.length} Missions
       </div>
     </div>
 
     {/* ================= BODY ================= */}
-    <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-slate-100">
+    <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-background">
 
       {/* ================= WEEKLY SELECT ================= */}
-      <div className="bg-white rounded-2xl shadow border p-4">
-        <h4 className="text-xs font-black uppercase text-slate-500 mb-3">
+      <div className="bg-card rounded-2xl shadow border p-4">
+        <h4 className="text-xs font-black uppercase text-muted-foreground mb-3">
           Audit analysis
         </h4>
 
         <div className="overflow-x-auto">
           <table className="min-w-[1000px] w-full text-xs">
 
-            <thead className="bg-slate-50 text-slate-500 uppercase text-[10px]">
+            <thead className="bg-background text-muted-foreground uppercase text-[10px]">
               <tr>
                 <th className="px-4 py-3 text-center">#</th>
                 <th className="px-4 py-3 text-center">Total</th>
@@ -434,84 +493,51 @@ const [expandedChecklistId, setExpandedChecklistId] = useState(null);
                 <th className="px-4 py-3 text-center">Audit</th>
               </tr>
             </thead>
+             
+             
+              <tbody>
+  <tr className="border-t bg-primary/5">
+    
+    <td className="text-center px-4 py-3 text-slate-400">
+      01
+    </td>
 
-            <tbody>
-              {activePerson.history.map((week, i) => {
-                const weekStats =
-                  activePerson.type === "Checklist"
-                    ? week.checklist
-                    : week.delegation;
+    <td className="text-center font-bold">
+      {auditStats.total}
+    </td>
 
-                const isSelected = activeWeekIndex === i;
+    <td className="text-center text-green-600 font-bold">
+      {auditStats.done}
+    </td>
 
-                const percent = weekStats.total
-                  ? ((weekStats.notDone / weekStats.total) * 100).toFixed(1)
-                  : 0;
+    <td className="text-center text-red-500 font-bold">
+      {auditStats.overdue}
+    </td>
 
-                return (
-                  <tr
-                    key={i}
-                    className={`border-t transition ${
-                      isSelected ? "bg-primary/5" : "hover:bg-slate-50"
-                    }`}
-                  >
-                    <td className="text-center px-4 py-3 text-slate-400">
-                      {String(i + 1).padStart(2, "0")}
-                    </td>
+    <td className="text-center font-bold">
+      {auditStats.total
+        ? ((auditStats.notDone / auditStats.total) * 100).toFixed(1)
+        : 0
+      }% ({auditStats.notDone})
+    </td>
 
-                    {/*<td className="px-4 py-3 font-bold">
-                      {getWeekLabel(i)} • {week.period}
-                    </td>*/}
+    <td className="text-center">
+      <button
+        className="p-2 rounded-lg bg-background text-foreground border border-border"
+      >
+        <Search size={14} />
+      </button>
+    </td>
 
-                    <td className="text-center">{weekStats.total}</td>
-
-                    <td className="text-center text-green-600">
-                      {weekStats.done}
-                    </td>
-
-                    <td className="text-center text-red-500">
-                      {weekStats.overdue}
-                    </td>
-
-                    <td
-                      className={`text-center font-bold ${
-                        percent > 20 ? "text-red-600" : ""
-                      }`}
-                    >
-                      {percent}% ({weekStats.notDone})
-                    </td>
-
-                    <td className="text-center">
-                      <button
-                        onClick={() => {
-                          setActiveWeekIndex(i);
-                          fetchTaskDetails(
-                            activePerson.employeeId,
-                            week.dates.start,
-                            week.dates.end,
-                            i
-                          );
-                        }}
-                        className={`p-2 rounded-lg ${
-                          isSelected
-                            ? "bg-slate-900 text-white"
-                            : "bg-slate-100 hover:bg-slate-200"
-                        }`}
-                      >
-                        <Search size={14} />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
+  </tr>
+</tbody>
 
           </table>
         </div>
       </div>
 
       {/* ================= AUDIT LEDGER ================= */}
-      <div className="bg-white rounded-2xl shadow border overflow-hidden">
+      <div className="bg-card rounded-2xl shadow border overflow-hidden">
 
         <div className="px-6 py-4 border-b flex justify-between items-center">
           <h3 className="font-black text-sm uppercase">
@@ -520,225 +546,221 @@ const [expandedChecklistId, setExpandedChecklistId] = useState(null);
         </div>
 
         {loadingDeepDive ? (
-          <div className="p-16 text-center text-slate-400 font-bold text-sm">
-            Syncing Logs...
-          </div>
-        ) : deepDiveData.length === 0 ? (
-          <div className="p-16 text-center text-slate-300 font-bold text-sm">
-            No missions found for selected range
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-[1100px] w-full text-xs">
-            
-              <thead className="bg-slate-900 text-white text-[10px] uppercase">
-                <tr>
-                  <th className="px-6 py-4 text-left">Mission</th>
-                  <th className="px-6 py-4 text-center">Deadline</th>
-                  <th className="px-6 py-4 text-center">Completed</th>
-                  <th className="px-6 py-4 text-center">Drift</th>
-                  <th className="px-6 py-4 text-center">Status</th>
-                  <th className="px-6 py-4 text-center">Action</th>
-                </tr>
-              </thead>
+  <div className="p-16 text-center text-slate-400 font-bold text-sm">
+    Syncing Logs...
+  </div>
+) : deepDiveData.length === 0 ? (
+  <div className="p-16 text-center text-slate-300 font-bold text-sm">
+    No missions found for selected range
+  </div>
+) : (
+  <>
+    {/* ✅ ONLY FOR DELEGATION */}
+    {activePerson.type === 'Delegation' && (
+      <div className="overflow-x-auto">
+        <table className="min-w-[1100px] w-full text-xs">
+          
+          <thead className="bg-background text-foreground border-b border-border text-[10px] uppercase">
+            <tr>
+              <th className="px-6 py-4 text-left">Mission</th>
+              <th className="px-6 py-4 text-center">Deadline</th>
+              <th className="px-6 py-4 text-center">Completed</th>
+              <th className="px-6 py-4 text-center">Drift</th>
+              <th className="px-6 py-4 text-center">Status</th>
+              <th className="px-6 py-4 text-center">Action</th>
+            </tr>
+          </thead>
 
-              <tbody>
-                {deepDiveData.filter(t => t.type === 'Delegation').map((task, i) => {
-                  const isUnfinished = !task.completedAt;
+          <tbody>
+            {deepDiveData
+              .filter(t => t.type === 'Delegation')
+              .map((task, i) => {
+                const isUnfinished = !task.completedAt;
 
-                  const status =
-                    task.status ||
-                    (isUnfinished ? "MISSING" : "DONE");
+                const status =
+                  task.status ||
+                  (isUnfinished ? "MISSING" : "DONE");
 
-                  return (
-                    <tr
-                      key={i}
-                      className={`border-t hover:bg-slate-50 ${
-                        isUnfinished ? "bg-red-50/20" : ""
-                      }`}
-                    >
-                      <td className="px-6 py-4">
-                        <div className="font-bold max-w-[200px] truncate" title={task.name}>
-                            {task.name}
-                        </div>
-                        <div className="text-[10px] text-slate-400">
-                          {task.description ||
-                            "Operational standard protocol"}
-                        </div>
-                      </td>
+                return (
+                  <tr
+                    key={i}
+                    className={`border-t hover:bg-primary/5 ${
+                      isUnfinished ? "bg-red-50/20" : ""
+                    }`}
+                  >
+                    <td className="px-6 py-4">
+                      <div className="font-bold max-w-[200px] truncate" title={task.name}>
+                        {task.name}
+                      </div>
+                      <div className="text-[10px] text-slate-400">
+                        {task.description || "Operational standard protocol"}
+                      </div>
+                    </td>
 
-                      <td className="text-center">
-                        {new Date(task.deadline).toLocaleDateString("en-GB")}
-                      </td>
+                    <td className="text-center">
+                      {new Date(task.deadline).toLocaleDateString("en-GB")}
+                    </td>
 
-                      <td className="text-center font-bold">
-                        {task.completedAt ? (
-                          <div className="flex flex-col">
-                            <span>
-                              {new Date(
-                                task.completedAt
-                              ).toLocaleDateString("en-GB")}
-                            </span>
-                            <span className="text-[10px] text-green-600">
-                              {new Date(
-                                task.completedAt
-                              ).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-red-500 uppercase text-[10px]">
-                            Pending
+                    <td className="text-center font-bold">
+                      {task.completedAt ? (
+                        <div className="flex flex-col">
+                          <span>
+                            {new Date(task.completedAt).toLocaleDateString("en-GB")}
                           </span>
-                        )}
-                      </td>
-
-                      <td className="text-center font-bold">
-                        {calculateDelay(
-                          task.deadline,
-                          task.completedAt
-                        )}
-                      </td>
-
-                      <td className="text-center">
-                        <span
-                          className={`px-3 py-1 rounded-full text-[10px] font-bold ${
-                            status === "OVERDUE"
-                              ? "bg-red-500 text-white"
-                              : status === "LATE"
-                              ? "bg-yellow-400"
-                              : status === "MISSING"
-                              ? "bg-red-600 text-white"
-                              : "bg-green-500 text-white"
-                          }`}
-                        >
-                          {status}
+                          <span className="text-[10px] text-green-600">
+                            {new Date(task.completedAt).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-red-500 uppercase text-[10px]">
+                          Pending
                         </span>
-                      </td>
+                      )}
+                    </td>
 
-                      <td className="text-center">
-                        <button
-                          onClick={() =>
-                            deleteTaskRecord(task.id, task.type)
-                          }
-                          className="p-2 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-xl transition"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-{groupedChecklist.map(([taskId, task], index) => {
-  const isOpen = expandedChecklistId === taskId;
+                    <td className="text-center font-bold">
+                      {calculateDelay(task.deadline, task.completedAt)}
+                    </td>
 
-  return (
-    <React.Fragment key={taskId}>
-      
-      {/* ✅ MAIN ROW */}
-      <tr className="border-t bg-sky-50/30">
-        <td className="px-6 py-4 font-bold">
-          {task.taskName}
-        </td>
+                    <td className="text-center">
+                      <span
+                        className={`px-3 py-1 rounded-full text-[10px] font-bold ${
+                          status === "OVERDUE"
+                            ? "bg-red-500 text-white"
+                            : status === "LATE"
+                            ? "bg-yellow-400"
+                            : status === "MISSING"
+                            ? "bg-red-600 text-white"
+                            : "bg-green-500 text-white"
+                        }`}
+                      >
+                        {status}
+                      </span>
+                    </td>
 
-        <td className="text-center text-slate-400">—</td>
-        <td className="text-center text-slate-400">—</td>
-        <td className="text-center text-slate-400">—</td>
-
-        <td className="text-center">
-          <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-[10px]">
-            CHECKLIST
-          </span>
-        </td>
-
-        <td className="text-center">
-          <div className="flex justify-center gap-2">
-            
-            {/* DROPDOWN */}
-            <button
-              onClick={() =>
-                setExpandedChecklistId(isOpen ? null : taskId)
-              }
-              className="p-2 bg-blue-100 rounded-lg"
-            >
-              {isOpen ? "▲" : "▼"}
-            </button>
-
-            {/* DELETE */}
-            <button
-              onClick={() => deleteTaskRecord(taskId, 'Checklist')}
-              className="p-2 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-xl transition"
-            >
-              <Trash2 size={14} />
-            </button>
-
-          </div>
-        </td>
-      </tr>
-
-      {/* ✅ EXPANDED ROW (SEPARATE TR) */}
-
-
-{isOpen && (
-        <tr>
-          <td colSpan="6">
-            <div className="p-3 bg-white border rounded-xl">
-
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-slate-100">
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th>Due</th>
+                    <td className="text-center">
+                      <button
+                        onClick={() => deleteTaskRecord(task.id, task.type)}
+                        className="p-2 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-xl transition"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </td>
                   </tr>
-                </thead>
+                );
+              })}
+          </tbody>
+        </table>
+      </div>
+    )}
 
-                <tbody>
-                  {task.instances.map((inst, i) => (
-                    <tr key={i} className="border-t">
-                      <td>
-                        {new Date(inst.deadline).toLocaleDateString()}
-                      </td>
+    {/* ✅ CHECKLIST UI (UNCHANGED) */}
+    {activePerson.type === 'Checklist' && (
+      <div className="space-y-4">
+        {groupedChecklist.map(([taskId, task]) => {
+          const isOpen = expandedChecklistIds.includes(taskId);
 
-                      <td>
-                        <span className={
-                          inst.status === "OVERDUE"
-                            ? "text-red-500"
-                            : inst.status === "LATE"
-                            ? "text-yellow-500"
-                            : "text-green-600"
-                        }>
-                          {inst.status}
-                        </span>
-                      </td>
+          return (
+            <div
+              key={taskId}
+              className="bg-card border rounded-2xl shadow-sm hover:shadow-md transition"
+            >
+              <div className="flex items-center justify-between px-5 py-4">
+                <div>
+                  <h4 className="font-bold text-sm text-foreground">
+                    {task.taskName}
+                  </h4>
+                  <p className="text-xs text-slate-400 uppercase tracking-wide">
+                    Checklist Task
+                  </p>
+                </div>
 
-                      <td>
-                        {inst.completedAt
-                          ? new Date(inst.completedAt).toLocaleString()
-                          : "Pending"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-            </div>
-          </td>
-        </tr>
-)}
-
-
-
-    </React.Fragment>
+                <div className="flex items-center gap-3">
+                  <button
+                  onClick={() => {
+  setExpandedChecklistIds(prev =>
+    prev.includes(taskId)
+      ? prev.filter(id => id !== taskId) // close only this one
+      : [...prev, taskId] // open without closing others
   );
-})}
- </tbody>
+}}
+                
+                className="p-3 bg-background hover:bg-slate-200 rounded-xl transition flex items-center justify-center"
+              >
+                {isOpen ? (
+                  <ChevronUp size={20} />
+                ) : (
+                  <ChevronDown size={20} />
+                )}
+              </button>
 
-            </table>
-          </div>
-        )}
+                  <button
+                onClick={() => deleteTaskRecord(taskId, 'Checklist')}
+                className="p-3 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-xl transition flex items-center justify-center"
+              >
+                <Trash2 size={18} />
+              </button>
+                </div>
+              </div>
+
+              {isOpen && (
+                <div className="overflow-auto">
+                  <div className="min-w-[800px] max-h-[500px] w-full text-xs">
+                    <div className="border-t px-5 py-4 bg-background rounded-b-2xl">
+
+                      <div className="grid grid-cols-3 text-[10px] font-bold text-muted-foreground uppercase mb-2">
+                        <div>Date</div>
+                        <div>Status</div>
+                        <div>Completed</div>
+                      </div>
+
+                      <div className="space-y-2">
+                        {task.instances.map((inst, i) => (
+                          <div
+                            key={i}
+                            className="grid grid-cols-3 text-xs bg-card border rounded-lg px-3 py-2"
+                          >
+                            <div>
+                              <b>{new Date(inst.deadline).toLocaleDateString()}</b>
+                            </div>
+
+                            <div>
+                              <span className={`font-bold ${
+                                inst.status === "OVERDUE"
+                                  ? "text-red-500"
+                                  : inst.status === "LATE"
+                                  ? "text-yellow-500"
+                                  : "text-green-600"
+                              }`}>
+                                {inst.status}
+                              </span>
+                            </div>
+
+                            <div>
+                              <b>
+                                {inst.completedAt
+                                  ? new Date(inst.completedAt).toLocaleString()
+                                  : "Pending"}
+                              </b>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    )}
+  </>
+)}
       </div>
 
     </div>

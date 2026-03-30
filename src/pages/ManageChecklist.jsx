@@ -69,14 +69,37 @@ const [selectedEmployee, setSelectedEmployee] = useState(null);
     const frequency = item.frequency;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    let pointer = new Date(today);
+    let pointer = new Date(today); 
     const weekends = tenantSettings?.weekends || [0];
     const holidays = tenantSettings?.holidays || [];
 
+    /*
     const isNonWorkingDay = (date) => {
       const dateStr = date.toISOString().split('T')[0];
       return weekends.includes(date.getDay()) || holidays.some(h => new Date(h.date).toISOString().split('T')[0] === dateStr);
     };
+    */
+
+
+
+
+    const normalizeDate = (d) => {
+  const date = new Date(d);
+  date.setHours(0, 0, 0, 0);
+  return date.getTime();
+};
+
+const holidaySet = new Set(
+  (holidays || []).map(h => normalizeDate(h.date))
+);
+
+const isNonWorkingDay = (date) => {
+  const time = normalizeDate(date);
+  return weekends.includes(date.getDay()) || holidaySet.has(time);
+};
+
+
+
 
     const matchesConfig = (date) => {
       if (frequency === 'Weekly') {
@@ -89,6 +112,50 @@ const [selectedEmployee, setSelectedEmployee] = useState(null);
       }
       return true;
     };
+
+
+
+    if (['Yearly', 'Half-Yearly', 'Quarterly'].includes(frequency)) {
+  const baseDate = new Date(item.nextDueDate || today);
+
+  const incrementMap = {
+    'Yearly': 1,
+    'Half-Yearly': 0.5,
+    'Quarterly': 0.25
+  };
+
+  let count = 0;
+  let pointer = new Date(baseDate);
+
+  while (dates.length < 5 && count < 10) {
+    count++;
+
+    // increment based on type
+    if (frequency === 'Yearly') pointer.setFullYear(pointer.getFullYear() + 1);
+    if (frequency === 'Half-Yearly') pointer.setMonth(pointer.getMonth() + 6);
+    if (frequency === 'Quarterly') pointer.setMonth(pointer.getMonth() + 3);
+
+    // skip holidays/weekends
+    while (isNonWorkingDay(pointer)) {
+      pointer.setDate(pointer.getDate() + 1);
+    }
+
+    dates.push({
+      label: dates.length === 0 ? "NEXT" : "FOLLOWING",
+      date: new Date(pointer).toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      })
+    });
+  }
+
+  return dates;
+}
+
+
+
+
 
     let loopSafety = 0;
     while (dates.length < 5 && loopSafety < 1000) {
@@ -135,6 +202,7 @@ const [selectedEmployee, setSelectedEmployee] = useState(null);
         API.get(`/superadmin/employees/${currentTenantId}`).catch(() => ({ data: [] })),
         API.get(`/superadmin/settings/${currentTenantId}`).catch(() => ({ data: {} }))
       ]);
+      console.log(checkRes);
       setChecklists(Array.isArray(checkRes.data) ? checkRes.data : (checkRes.data?.data || []));
       setEmployees((Array.isArray(empRes.data) ? empRes.data : (empRes.data?.employees || empRes.data?.data || [])).filter(e => {
         const roles = Array.isArray(e.roles) ? e.roles : [e.role || ''];
@@ -167,7 +235,8 @@ const [selectedEmployee, setSelectedEmployee] = useState(null);
       taskName: item.taskName,
       description: item.description || '',
       frequency: item.frequency,
-      frequencyConfig: item.frequencyConfig || { daysOfWeek: [], daysOfMonth: [] }
+      frequencyConfig: item.frequencyConfig || { daysOfWeek: [], daysOfMonth: [] },
+      createdAt: item.createdAt 
     });
   };
 
@@ -243,7 +312,7 @@ const [selectedEmployee, setSelectedEmployee] = useState(null);
 
 
 {/* ================= FILTER BAR ================= */}
-<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-card/40 p-4 rounded-2xl border border-border">
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 bg-card/40 p-4 rounded-2xl border border-border">
 
   {/* SEARCH */}
   <div className="relative group">
@@ -258,7 +327,7 @@ const [selectedEmployee, setSelectedEmployee] = useState(null);
   </div>
 
   {/* DATE */}
-  <div className="relative group">
+  {/*<div className="relative group">
     <input
       type="date"
       value={selectedDate}
@@ -267,6 +336,7 @@ const [selectedEmployee, setSelectedEmployee] = useState(null);
     />
     <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
   </div>
+  */}
 
   {/* TABS */}
   <div className="flex bg-background p-1 rounded-xl border border-border overflow-x-auto custom-scrollbar">
@@ -288,7 +358,7 @@ const [selectedEmployee, setSelectedEmployee] = useState(null);
 </div>
 
       {/* EXCEL GRID */}
-      <div className="bg-card border border-border rounded-[2.5rem] shadow-2xl max-h-[600px] flex flex-col overflow-hidden">
+      <div className="bg-card border border-border rounded-[2.5rem] shadow-2xl max-h-[550px] flex flex-col overflow-hidden">
 
   {/* SCROLL AREA */}
   <div className="flex-1 overflow-y-auto overflow-x-auto custom-scrollbar  w-full scrollbar-thin">
@@ -467,7 +537,6 @@ const [selectedEmployee, setSelectedEmployee] = useState(null);
             </p>
           </div>
         </div>
-
         <button
           onClick={() => setIsConfigModalOpen(false)}
           className="text-slate-400 hover:text-foreground transition"
@@ -475,12 +544,32 @@ const [selectedEmployee, setSelectedEmployee] = useState(null);
           <X size={22} />
         </button>
       </div>
-
       {/* BODY */}
       <div className="p-6 md:p-8 space-y-8">
-
         {/* FREQUENCY SELECT */}
         <div className="space-y-3">
+
+
+
+{/*
+          
+<div className="space-y-2">
+  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
+    Start Date
+  </label>
+
+  <input
+    type="date"
+    value={editData.createdAt ? editData.createdAt.split('T')[0] : ''}
+    onChange={(e) =>
+      setEditData({ ...editData, createdAt: e.target.value })
+    }
+    className="w-full bg-background border border-border p-3 rounded-xl text-sm font-semibold"
+  />
+</div>
+
+*/}
+
           <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
             Lifecycle
           </label>

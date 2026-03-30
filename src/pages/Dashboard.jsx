@@ -445,7 +445,7 @@ useEffect(() => {
         </header>
 
         {/* MAIN ROUTE HUB */}
-        <main className="p-4 md:p-10 w-full max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-3 duration-700">
+        <main className="p-4 md:p-10 w-full max-w-8xl mx-auto animate-in fade-in slide-in-from-bottom-3 duration-700">
           <Routes>
             <Route path="/" element={
                 <div className="space-y-10">

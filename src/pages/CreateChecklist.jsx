@@ -201,16 +201,10 @@ const isDisabledDate = (date) =>
 
   {/* HEADER */}
   <div className="mb-8 flex items-center gap-5">
-    <div className="bg-primary/10 p-4 rounded-2xl border border-primary/20 shadow-inner">
-      <Activity className="text-primary" size={28} />
-    </div>
     <div>
-      <h2 className="text-foreground text-2xl md:text-3xl font-black uppercase leading-none">
-        Initialize Checklist Task
+      <h2 className="text-foreground text-2xl md:text-3xl font-black uppercase leading-none ">
+        Create Checklist Task
       </h2>
-      <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm font-bold uppercase tracking-widest mt-2 opacity-80">
-        Provision recurring work schedules
-      </p>
     </div>
   </div>
 

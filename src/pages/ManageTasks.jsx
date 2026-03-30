@@ -41,6 +41,13 @@ const ManageTasks = ({ assignerId, tenantId }) => {
   const [expandedTaskId, setExpandedTaskId] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
 
+
+
+
+  const [revisionModalTask, setRevisionModalTask] = useState(null);
+
+
+
   const user = JSON.parse(localStorage.getItem('user'));
   const currentAssignerId = assignerId || user?._id || user?.id;
   const currentTenantId = tenantId || localStorage.getItem('tenantId');
@@ -92,6 +99,7 @@ const ManageTasks = ({ assignerId, tenantId }) => {
           ? API.get(`/superadmin/employees/${currentTenantId}`).catch(() => ({ data: [] }))
           : Promise.resolve({ data: [] })
       ]);
+      console.log(taskRes);
 
       const rawTaskData = Array.isArray(taskRes.data)
         ? taskRes.data
@@ -209,13 +217,13 @@ const ManageTasks = ({ assignerId, tenantId }) => {
 
 
 
-      <div className="h-[600px] flex flex-col overflow-hidden rounded-xl border border-border ">
+      <div className="h-[500px] flex flex-col overflow-hidden rounded-xl border border-border ">
 
 <div className="w-full overflow-x-auto">
   <div className="min-w-[700px]">
 
     {/* GRID HEADER */}
-    <div className="grid grid-cols-[1.5fr_2fr_1fr_1fr_1fr] 
+    <div className="grid grid-cols-[1.5fr_1.5fr_1fr_1fr_1fr_1fr] 
       px-6 lg:px-10 py-5 bg-card backdrop-blur-xl border border-border 
       font-black text-slate-400 text-[10px] lg:text-[11px]
       uppercase tracking-[0.2em] items-center 
@@ -223,6 +231,7 @@ const ManageTasks = ({ assignerId, tenantId }) => {
 
       <div>Task Name</div>
       <div>Assigned To</div>
+      <div>Created At</div>
       <div>Deadline</div>
       <div>Status</div>
       <div className="text-right pr-2 lg:pr-4">Action</div>
@@ -240,7 +249,7 @@ const ManageTasks = ({ assignerId, tenantId }) => {
           {/* ROW */}
           <div
             onClick={() => toggleExpand(task._id)}
-            className={`grid grid-cols-[1.5fr_2fr_1fr_1fr_1fr]  items-center px-6 py-5 cursor-pointer transition-all
+            className={`grid grid-cols-[1.5fr_1.5fr_1fr_1fr_1fr_1fr]  items-center px-6 py-5 cursor-pointer transition-all
             hover:bg-primary/[0.03]
             ${isExpanded ? 'bg-slate-100/60 dark:bg-primary/[0.08]' : ''}
             ${isRevision ? 'border-l-4 border-l-amber-500' : 'border-l-4 border-l-transparent'}
@@ -262,6 +271,10 @@ const ManageTasks = ({ assignerId, tenantId }) => {
               {task.doerId?.name || 'Unassigned'}
             </div>
 
+            <div className="text-xs font-bold text-muted-foreground">
+                {task.createdAt ? new Date(task.createdAt).toLocaleDateString("en-GB") : "—"}
+            </div>
+
             {/* DEADLINE */}
             <div className="text-xs font-bold">
               {task.deadline
@@ -278,6 +291,16 @@ const ManageTasks = ({ assignerId, tenantId }) => {
 
             {/* ACTIONS */}
             <div className="flex gap-2 justify-end">
+              {task.status === 'Revision Requested' && (
+                  <button
+                      onClick={(e) => { e.stopPropagation(); setRevisionModalTask(task);}}
+                      className="p-3 bg-amber-500/10 text-amber-600 rounded-xl border border-amber-500/20 hover:bg-amber-500 hover:text-white transition-all active:scale-90"
+                    >
+                      <AlertTriangle size={18} />
+                  </button>
+                  )}
+
+
               {task.status === 'Completed' && (
                 <>
                   <button
@@ -315,166 +338,135 @@ const ManageTasks = ({ assignerId, tenantId }) => {
                   <div className="bg-background/80 backdrop-blur-xl border-t border-border animate-in slide-in-from-top-4 duration-500">
                    
                   {/* 🔥 HEADER INSIDE EXPAND */}
-                  <div className="px-6 lg:px-10 pt-6">
-                    <h3
-                        className="text-lg lg:text-xl font-black uppercase tracking-tight text-foreground truncate"
-                        title={task.title}
-                    >
-                      {task.title}
-                    </h3>
-                  </div>
+                  <div className="px-6 lg:px-10 pt-6 space-y-4">
 
-      <div className="p-6 lg:p-10">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+  {/* TITLE */}
+  <h3 className="text-lg lg:text-xl font-black uppercase tracking-tight text-foreground truncate">
+    {task.title}
+  </h3>
 
-        {/* LEFT */}
-        <div className="space-y-6">
-          <h4 className="text-primary font-black text-[10px] uppercase tracking-[0.3em] flex items-center gap-3 px-1">
-            <AlertTriangle size={16} /> Task Details
-          </h4>
+  {/* META ROW */}
+  <div className="flex flex-wrap gap-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
 
-          <div className="bg-card p-6 rounded-[2rem] border border-border shadow-lg space-y-6">
-
-            {/* ASSIGNER / DOER */}
-            <div className="grid grid-cols-2 gap-4 border-b border-border/50 pb-4">
-              <div>
-                <strong className="text-slate-400 block text-[8px] font-black uppercase tracking-widest">
-                  Issued By
-                </strong>
-                <span className="text-primary text-xs font-black uppercase break-words">
-                  {task.assignerId?.name || "System Registry"}
-                </span>
-              </div>
-              <div>
-                <strong className="text-slate-400 block text-[8px] font-black uppercase tracking-widest">
-                  Assigned to 
-                </strong>
-                <span className="text-foreground text-xs font-black uppercase break-words">
-                  {task.doerId?.name}
-                </span>
-              </div>
-            </div>
-
-            {/* 🔥 DESCRIPTION FIX */}
-            <div className="space-y-3">
-              <strong className="text-primary block text-[10px] font-black uppercase tracking-widest opacity-90">
-                Task Description
-              </strong>
-
-              <div className="bg-background border border-border rounded-xl p-4 max-h-[140px] overflow-y-auto custom-scrollbar">
-                <p className="text-slate-800 dark:text-foreground text-sm font-bold uppercase tracking-tight leading-relaxed break-words">
-                  {task.description || "No supplemental directives detected."}
-                </p>
-              </div>
-            </div>
-
-            {/* FILES */}
-            {Array.isArray(task.files) && task.files.some(f => !f.fileName.includes("Evidence")) && (
-              <div className="space-y-3 pt-6 border-t border-border/50">
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                  Attachments
-                </p>
-
-                <div className="flex flex-wrap gap-3 max-h-[120px] overflow-y-auto custom-scrollbar">
-                  {task.files
-                    .filter(f => !f.fileName.includes("Evidence"))
-                    .map((file, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setPreviewImage(file.fileUrl)}
-                        className="bg-background border border-border px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2 hover:border-primary/40 transition-all"
-                      >
-                        <Paperclip size={14} /> {file.fileName}
-                      </button>
-                    ))}
-                </div>
-              </div>
-            )}
-
-            {/* PROOF */}
-            {(task.status === 'Completed' || task.status === 'Verified') && (
-              <div className="space-y-4 pt-6 border-t border-border">
-                <h5 className="text-emerald-600 text-[10px] font-black uppercase tracking-widest">
-                  Execution Proof
-                </h5>
-
-                <div className="bg-background p-4 rounded-xl border border-border italic max-h-[120px] overflow-y-auto custom-scrollbar">
-                  <p className="text-xs font-bold uppercase break-words">
-                    "{task.remarks || "No remarks."}"
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-3">
-                  {Array.isArray(task.files) &&
-                    task.files
-                      .filter(f => f.fileName.includes("Evidence"))
-                      .map((file, i) => (
-                        <button
-                          key={i}
-                          onClick={() => setPreviewImage(file.fileUrl)}
-                          className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase flex items-center gap-2 transition-all"
-                        >
-                          <Maximize2 size={14} /> View Proof
-                        </button>
-                      ))}
-                </div>
-              </div>
-            )}
-          </div>
-          
-
-          {isRevision && (
-            <RevisionPanel
-              task={task}
-              employees={employees}
-              assignerId={currentAssignerId}
-              onSuccess={fetchData}
-              source="manage"
-            />
-          )}
-        </div>
-
-        {/* RIGHT */}
-        <div className="space-y-6">
-          <h4 className="text-primary font-black text-[10px] uppercase tracking-[0.3em] flex items-center gap-3 px-1">
-            <History size={16} /> Action History
-          </h4>
-
-          <div className="max-h-[400px] overflow-y-auto custom-scrollbar bg-card p-6 rounded-[2rem] border border-border shadow-lg space-y-6">
-
-            {Array.isArray(task.history) && task.history.length > 0 ? (
-              [...task.history].reverse().map((log, i) => (
-                <div key={i} className="relative pl-6 border-l border-border flex flex-col gap-2">
-
-                  <div className="flex justify-between text-[9px] font-black uppercase tracking-widest">
-                    <div className="flex gap-2 flex-wrap">
-                      <span className="text-primary">{log.action}</span>
-                      <span className="text-slate-400">BY</span>
-                      <span className="bg-muted px-2 rounded">
-                        {log.performedBy?.name || "System"}
-                      </span>
-                    </div>
-                    <span className="text-slate-500">
-                      {new Date(log.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                    </span>
-                  </div>
-
-                  <p className="text-[11px] font-bold uppercase break-words">
-                    "{log.remarks || "System update"}"
-                  </p>
-                </div>
-              ))
-            ) : (
-              <p className="text-center text-[10px] font-black uppercase opacity-50">
-                No History
-              </p>
-            )}
-              
-
-          </div>
-        </div>
-      </div>
+    <div>
+      Issued By: 
+      <span className="text-primary ml-2">
+        {task.assignerId?.name || "System"}
+      </span>
     </div>
+
+    <div>
+      Assigned To: 
+      <span className="text-foreground ml-2">
+        {task.doerId?.name}
+      </span>
+    </div>
+
+    <div>
+      Deadline: 
+      <span className="ml-2">
+        {task.deadline
+          ? new Date(task.deadline).toLocaleDateString()
+          : "—"}
+      </span>
+    </div>
+
+    <div>
+      Status:
+      <span className="ml-2 text-sky-500">
+        {task.status}
+      </span>
+    </div>
+
+  </div>
+</div>
+<div className="px-6 lg:px-10 mt-6 space-y-2">
+  <p className="text-[10px] font-black uppercase tracking-widest text-primary">
+    Description
+  </p>
+
+  <p className="text-sm font-bold uppercase text-slate-700 dark:text-foreground leading-relaxed">
+    {task.description || "No directives provided."}
+  </p>
+</div>
+
+
+{Array.isArray(task.files) && task.files.some(f => !f.fileName.includes("Evidence")) && (
+  <div className="px-6 lg:px-10 mt-6 space-y-2">
+    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+      Attachments
+    </p>
+
+    <div className="flex flex-wrap gap-3">
+      {task.files
+        .filter(f => !f.fileName.includes("Evidence"))
+        .map((file, i) => (
+          <button
+            key={i}
+            onClick={() => setPreviewImage(file.fileUrl)}
+            className="px-3 py-1 border border-border rounded-lg text-[10px] font-black uppercase hover:border-primary"
+          >
+            {file.fileName}
+          </button>
+        ))}
+    </div>
+  </div>
+)}
+
+
+       {/* RIGHT */}
+        <div className="px-6 lg:px-10 mt-10">
+
+  <h4 className="text-primary font-black text-[10px] uppercase tracking-[0.3em] mb-6">
+    Action Timeline
+  </h4>
+
+  <div className="space-y-6 border-l border-border pl-6">
+
+    {Array.isArray(task.history) && task.history.length > 0 ? (
+      [...task.history].reverse().map((log, i) => (
+
+        <div key={i} className="relative">
+
+          {/* DOT */}
+          <div className="absolute -left-[10px] top-2 w-1.5 h-1.5 bg-primary rounded-full"></div>
+
+          {/* CONTENT */}
+          <div className="space-y-1">
+
+            <div className="flex flex-wrap justify-between text-[10px] font-black uppercase tracking-widest">
+              
+              <div className="flex gap-2 flex-wrap">
+                <span className="text-primary">{log.action}</span>
+                <span className="text-slate-400">BY</span>
+                <span>{log.performedBy?.name || "System"}</span>
+              </div>
+
+              <span className="text-slate-500">
+                {new Date(log.timestamp).toLocaleDateString([], {
+                  month: 'short',
+                  day: 'numeric'
+                })}
+              </span>
+
+            </div>
+
+            <p className="text-sm font-bold uppercase text-slate-700 dark:text-foreground">
+              "{log.remarks || "System update"}"
+            </p>
+
+          </div>
+        </div>
+
+      ))
+    ) : (
+      <p className="text-[10px] font-black uppercase opacity-50">
+        No History
+      </p>
+    )}
+
+  </div>
+</div>
   </div>
 )}
         </div>
@@ -483,6 +475,46 @@ const ManageTasks = ({ assignerId, tenantId }) => {
   </div>
 </div>
       </div>
+
+
+
+      {revisionModalTask && (
+  <div className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    
+    {/* Modal Box */}
+    <div className="w-full max-w-2xl bg-card rounded-3xl border border-border shadow-2xl animate-in zoom-in-95 duration-300">
+      
+      {/* Header */}
+      <div className="flex justify-between items-center px-6 py-4 border-b border-border">
+        <h3 className="font-black text-sm uppercase tracking-widest">
+          Revision Control Panel
+        </h3>
+
+        <button
+          onClick={() => setRevisionModalTask(null)}
+          className="p-2 rounded-full hover:bg-red-500/20 text-red-500"
+        >
+          <X size={18} />
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="max-h-[70vh] overflow-y-auto">
+        <RevisionPanel
+          task={revisionModalTask}
+          employees={employees}
+          assignerId={currentAssignerId}
+          onSuccess={() => {
+            setRevisionModalTask(null);
+            fetchData();
+          }}
+          source="manage"
+        />
+      </div>
+
+    </div>
+  </div>
+)}
 
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
