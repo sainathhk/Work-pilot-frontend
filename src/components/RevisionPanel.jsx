@@ -148,6 +148,7 @@ const handleRequestRevision = async () => {
       className="w-full p-4 border rounded-xl"
     />
 
+    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] ml-2">Proposed Deadline</label>
     <input
       type="date"
       value={proposedDeadline}

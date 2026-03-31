@@ -286,66 +286,6 @@ const isDisabledDate = (date) =>
 
         {/* MAIN GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-          {/* FOLLOWERS */}
-          <div className="lg:col-span-2 flex flex-col">
-            <label className="text-sm font-medium text-slate-600">
-              Followers
-            </label>
-
-            {/* SELECTED CHIPS */}
-            {selectedHelpers.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {selectedHelpers.map((h) => (
-                  <div key={h.helperId} className="flex items-center gap-2 px-3 py-1 text-xs bg-primary/10 text-primary rounded-full">
-                    {h.name}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setSelectedHelpers(selectedHelpers.filter(x => x.helperId !== h.helperId))
-                      }
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* SEARCH */}
-            <input
-              type="text"
-              value={followerSearch}
-              onChange={(e) => setFollowerSearch(e.target.value)}
-              placeholder="Search followers"
-              className="w-full mt-2 px-4 py-2 rounded-lg border border-border text-sm bg-background/70 focus:ring-2 focus:ring-primary/30"
-            />
-
-            {/* SCROLLABLE LIST */}
-            <div className="mt-2 h-40 overflow-y-auto border border-border rounded-lg p-1 space-y-1 custom-scrollbar">
-              {filteredFollowers.map((emp) => (
-                <label
-                  key={emp._id}
-                  className="flex justify-between items-center px-3 py-2 text-sm hover:bg-primary/5 cursor-pointer rounded-md transition"
-                >
-                  <span>{emp.name}</span>
-                  <input
-                    type="checkbox"
-                    className="accent-primary"
-                    checked={selectedHelpers.some(h => h.helperId === emp._id)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedHelpers([...selectedHelpers, { helperId: emp._id, name: emp.name }]);
-                      } else {
-                        setSelectedHelpers(selectedHelpers.filter(h => h.helperId !== emp._id));
-                      }
-                    }}
-                  />
-                </label>
-              ))}
-            </div>
-          </div>
-
           {/* RIGHT PANEL */}
           <div className="space-y-5">
 
@@ -461,6 +401,64 @@ const isDisabledDate = (date) =>
               )}
             </div>
 
+          </div>
+          {/* FOLLOWERS */}
+          <div className="lg:col-span-2 flex flex-col">
+            <label className="text-sm font-medium text-slate-600">
+              Followers
+            </label>
+
+            {/* SELECTED CHIPS */}
+            {selectedHelpers.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {selectedHelpers.map((h) => (
+                  <div key={h.helperId} className="flex items-center gap-2 px-3 py-1 text-xs bg-primary/10 text-primary rounded-full">
+                    {h.name}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSelectedHelpers(selectedHelpers.filter(x => x.helperId !== h.helperId))
+                      }
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* SEARCH */}
+            <input
+              type="text"
+              value={followerSearch}
+              onChange={(e) => setFollowerSearch(e.target.value)}
+              placeholder="Search followers"
+              className="w-full mt-2 px-4 py-2 rounded-lg border border-border text-sm bg-background/70 focus:ring-2 focus:ring-primary/30"
+            />
+
+            {/* SCROLLABLE LIST */}
+            <div className="mt-2 h-40 overflow-y-auto border border-border rounded-lg p-1 space-y-1 custom-scrollbar">
+              {filteredFollowers.map((emp) => (
+                <label
+                  key={emp._id}
+                  className="flex justify-between items-center px-3 py-2 text-sm hover:bg-primary/5 cursor-pointer rounded-md transition"
+                >
+                  <span>{emp.name}</span>
+                  <input
+                    type="checkbox"
+                    className="accent-primary"
+                    checked={selectedHelpers.some(h => h.helperId === emp._id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedHelpers([...selectedHelpers, { helperId: emp._id, name: emp.name }]);
+                      } else {
+                        setSelectedHelpers(selectedHelpers.filter(h => h.helperId !== emp._id));
+                      }
+                    }}
+                  />
+                </label>
+              ))}
+            </div>
           </div>
         </div>
 
