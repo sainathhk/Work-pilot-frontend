@@ -562,6 +562,15 @@ const [employees, setEmployees] = useState([]);
     </p>
   </div>
 )}
+
+  <div className="bg-gray-50 p-3 rounded mt-2 text-xs">
+    <p><b>Customer:</b> {mission.sheetData?.["Customer Name"]}</p>
+    <p><b>Item:</b> {mission.sheetData?.["Item Name"]}</p>
+    <p><b>Qty:</b> {mission.sheetData?.["Entered Qty"]}</p>
+    <p><b>PO:</b> {mission.sheetData?.["PO Number"]}</p>
+  </div>
+
+
                         <div>
                           <label className="text-[7px] text-slate-400 font-black uppercase block mb-1">Identity</label>
                           <p className="text-[9px] font-bold text-foreground">SYNC-ACTIVE</p>
@@ -844,9 +853,6 @@ const [employees, setEmployees] = useState([]);
     </div>
   </div>
 )}
-
-
-
     </div>
   );
 };

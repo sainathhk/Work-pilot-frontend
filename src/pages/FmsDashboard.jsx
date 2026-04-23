@@ -1010,6 +1010,40 @@ return (
 
 
 
+const formatInstances = (instances) => {
+  return instances.map((inst) => {
+    const currentStep = inst.steps.find(
+      s => s.stepIndex === inst.currentStepIndex
+    );
+
+    return {
+      id: inst._id,
+      order: inst.orderIdentifier,
+      step: currentStep?.nodeName,
+      customer: inst.sheetDataId?.rawData?.["Customer Name"] || "-",
+item: inst.sheetDataId?.rawData?.["Item Name"] || "-",
+qty: inst.sheetDataId?.rawData?.["Entered Qty"] || "-",
+po: inst.sheetDataId?.rawData?.["PO Number"] || "-",
+      decision: currentStep?.decision || "—",
+      completedAt: currentStep?.actualCompletedAt || null,
+      status: currentStep?.status,
+      deadline: currentStep?.plannedDeadline
+    };
+  });
+};
+
+
+
+//const data = formatInstances(activeInstances || []);
+const data = formatInstances(activeInstances || []).filter((row) => {
+  if (!row.order) return false;
+
+  // Example: split by "-" OR length check
+  const parts = row.order.split("");
+
+  return parts.length >= 2; // 🔥 your rule
+});
+
 
 return (
   <div className="w-full min-h-screen bg-background text-foreground flex flex-col items-center px-4 md:px-8 py-8 gap-10">
@@ -1065,239 +1099,259 @@ return (
 
     <div className="w-full max-w-6xl">
       {view === "Create" ? (
-  <div className="bg-card border border-border rounded-3xl p-6 md:p-10 shadow-xl space-y-10">
+ <div className="w-full max-w-7xl mx-auto space-y-10">
 
-    {/* ================= HEADER ================= */}
-
-
-
-    <div className="flex flex-col gap-1">
-  <label>Work Day Start (Hour)</label>
-  <input
-    type="number"
-    value={newFlow.workingHours.start}
-    onChange={(e)=>setNewFlow({
-      ...newFlow,
-      workingHours: {
-        ...newFlow.workingHours,
-        start: Number(e.target.value)
-      }
-    })}
-  />
-</div>
-
-<div className="flex flex-col gap-1">
-  <label>Work Day End (Hour)</label>
-  <input
-    type="number"
-    value={newFlow.workingHours.end}
-    onChange={(e)=>setNewFlow({
-      ...newFlow,
-      workingHours: {
-        ...newFlow.workingHours,
-        end: Number(e.target.value)
-      }
-    })}
-  />
-</div>
-
-
-
+  {/* ================= HEADER ================= */}
+  <div className="flex items-center justify-between">
     <div>
-      <h2 className="text-lg font-black text-foreground tracking-tight">
-        Create New Flow
-      </h2>
-      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-        Define your workflow trigger and step execution pipeline
+      <h1 className="text-3xl font-extrabold tracking-tight text-slate-800">
+        🚀 Create Workflow
+      </h1>
+      <p className="text-sm text-slate-500 mt-1">
+        Design and automate your pipeline visually
       </p>
     </div>
 
-    {/* ================= BASIC DETAILS ================= */}
-    <div className="space-y-4">
-      <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">
-        Flow Configuration
-      </h3>
+    <button
+      onClick={saveBlueprint}
+      className="px-6 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-semibold shadow-lg hover:scale-105 transition"
+    >
+      💾 Save Flow
+    </button>
+  </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 bg-background border border-border p-6 rounded-2xl">
+  {/* ================= CONFIG ================= */}
+  <div className="bg-white border rounded-2xl p-8 shadow-lg space-y-8">
 
-        {/* Flow Name */}
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-semibold text-slate-500">Flow Name</label>
-          <input
-            className="input"
-            placeholder="e.g Order Processing"
-            value={newFlow.flowName}
-            onChange={(e)=>setNewFlow({...newFlow, flowName:e.target.value})}
-          />
-        </div>
+    <h2 className="text-lg font-bold text-slate-700">
+      ⚙️ Flow Configuration
+    </h2>
 
-        {/* Sheet ID */}
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-semibold text-slate-500">Google Sheet ID</label>
-          <input
-            className="input"
-            placeholder="Sheet ID"
-            value={newFlow.googleSheetId}
-            onChange={(e)=>setNewFlow({...newFlow, googleSheetId:e.target.value})}
-          />
-        </div>
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-        {/* Script URL */}
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-semibold text-slate-500">Apps Script URL</label>
-          <input
-            className="input"
-            placeholder="https://script.google.com/..."
-            value={newFlow.scriptUrl}
-            onChange={(e)=>setNewFlow({...newFlow, scriptUrl:e.target.value})}
-          />
-        </div>
-
-        {/* Unique ID */}
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-semibold text-slate-500">Unique Identifier</label>
-          <input
-            className="input"
-            placeholder="Order ID"
-            value={newFlow.uniqueIdentifierColumn}
-            onChange={(e)=>setNewFlow({...newFlow, uniqueIdentifierColumn:e.target.value})}
-          />
-        </div>
-
-        {/* Tab Name */}
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-semibold text-slate-500">Sheet Tab Name</label>
-          <input
-            className="input"
-            placeholder="Sheet1"
-            value={newFlow.tabName}
-            onChange={(e)=>setNewFlow({...newFlow, tabName:e.target.value})}
-          />
-        </div>
-
-      </div>
-    </div>
-
-    {/* ================= STEPS ================= */}
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">
-          Workflow Steps
-        </h3>
-
-        <button className="btn-secondary text-xs" onClick={addNode}>
-          + Add Step
-        </button>
+      {/* Flow Name */}
+      <div className="space-y-1">
+        <label className="text-xs font-semibold text-slate-500">
+          Flow Name
+        </label>
+        <input
+          className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white text-sm 
+focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          value={newFlow.flowName}
+          onChange={(e)=>setNewFlow({...newFlow, flowName:e.target.value})}
+        />
       </div>
 
-      {newFlow.nodes.map((node, idx) => (
-        <div
-          key={idx}
-          className="bg-card border border-border p-5 rounded-2xl shadow-sm hover:shadow-md transition space-y-4"
-        >
+      {/* Sheet ID */}
+      <div className="space-y-1">
+        <label className="text-xs font-semibold text-slate-500">
+          Google Sheet ID
+        </label>
+        <input
+          className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white text-sm 
+focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          value={newFlow.googleSheetId}
+          onChange={(e)=>setNewFlow({...newFlow, googleSheetId:e.target.value})}
+        />
+      </div>
 
-          {/* STEP HEADER */}
-          <div className="flex items-center justify-between">
-            <div className="text-xs font-bold text-primary">
-              Step {idx + 1}
-            </div>
-          </div>
+      {/* Script URL */}
+      <div className="space-y-1">
+        <label className="text-xs font-semibold text-slate-500">
+          Apps Script URL  
+        </label>
+        <input
+          className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white text-sm 
+focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
+          value={newFlow.scriptUrl}
+          onChange={(e)=>setNewFlow({...newFlow, scriptUrl:e.target.value})}
+        />
+      </div>
 
-          {/* STEP INPUTS */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Unique ID */}
+      <div className="space-y-1">
+        <label className="text-xs font-semibold text-slate-500">
+          Unique Identifier Column
+        </label>
+        <input
+          className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white text-sm 
+focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          value={newFlow.uniqueIdentifierColumn}
+          onChange={(e)=>setNewFlow({...newFlow, uniqueIdentifierColumn:e.target.value})}
+        />
+      </div>
 
-            {/* Step Name */}
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-slate-500 font-semibold">
-                Step Name
-              </label>
-              <input
-                className="input"
-                placeholder="e.g Packing"
-                value={node.nodeName}
-                onChange={(e)=>handleNodeChange(idx,"nodeName",e.target.value)}
-              />
-            </div>
+      {/* Tab Name */}
+      <div className="space-y-1">
+        <label className="text-xs font-semibold text-slate-500">
+          Sheet Tab Name
+        </label>
+        <input
+          className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white text-sm 
+focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          value={newFlow.tabName}
+          onChange={(e)=>setNewFlow({...newFlow, tabName:e.target.value})}
+        />
+      </div>
 
-            {/* Sheet Column */}
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-slate-500 font-semibold">
-                Sheet Column
-              </label>
-              <input
-                className="input"
-                placeholder="Column Name"
-                value={node.sheetColumn || ""}
-                onChange={(e)=>handleNodeChange(idx,"sheetColumn",e.target.value)}
-              />
-            </div>
-
-            {/* Employee */}
-            <div className=" bg-card border border-border flex flex-col gap-1">
-              <label className="text-xs bg-card border border-border font-semibold">
-                Assign To
-              </label>
-              <select
-                className="input"
-                value={node.emailColumn || ""}
-                onChange={(e)=>handleNodeChange(idx,"emailColumn",e.target.value)}
-              >
-                <option value="">Select Employee</option>
-                {employees.map(emp => (
-                  <option key={emp._id} value={emp.email}>
-                    {emp.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Offset */}
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-slate-500 font-semibold">
-                Time Offset (hrs)
-              </label>
-              <input
-                className="input"
-                type="number"
-                placeholder="0"
-                value={node.offsetValue}
-                onChange={(e)=>handleNodeChange(idx,"offsetValue",e.target.value)}
-              />
-            </div>
-
-
-
-
-
-
-            <select
-                value={node.inputType || "complete"}
-                onChange={(e) => handleNodeChange(idx, "inputType", e.target.value)}
-                className="border p-2 rounded"
-              >
-              <option value="complete">✔ Complete / Pending</option>
-              <option value="yesno">❓ Yes / No Decision</option>
-            </select>
-
-
-
-
-
-
-
-          </div>
+      {/* Working Hours */}
+      <div className="space-y-1">
+        <label className="text-xs font-semibold text-slate-500">
+          Working Hours
+        </label>
+        <div className="flex gap-3">
+          <input
+            type="number"
+            className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white text-sm 
+focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            placeholder="Start"
+            value={newFlow.workingHours.start}
+            onChange={(e)=>setNewFlow({
+              ...newFlow,
+              workingHours:{
+                ...newFlow.workingHours,
+                start:Number(e.target.value)
+              }
+            })}
+          />
+          <input
+            type="number"
+            className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white text-sm 
+focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            placeholder="End"
+            value={newFlow.workingHours.end}
+            onChange={(e)=>setNewFlow({
+              ...newFlow,
+              workingHours:{
+                ...newFlow.workingHours,
+                end:Number(e.target.value)
+              }
+            })}
+          />
         </div>
-      ))}
-    </div>
+      </div>
 
-    {/* ================= ACTION ================= */}
-    <div className="flex justify-end">
-      <button className="btn-primary" onClick={saveBlueprint}>
-        Save Blueprint
+    </div>
+  </div>
+
+  {/* ================= STEPS ================= */}
+  <div className="space-y-6">
+
+    <div className="flex justify-between items-center">
+      <h2 className="text-lg font-bold text-slate-700">
+        🔄 Workflow Steps
+      </h2>
+
+      <button
+        onClick={addNode}
+        className="px-4 py-2 text-sm bg-indigo-500 text-white rounded-lg shadow hover:scale-105 transition"
+      >
+        + Add Step
       </button>
     </div>
 
+    <div className="space-y-6">
+
+      {newFlow.nodes.map((node, idx) => (
+        <div key={idx} className="relative flex gap-5">
+
+          {/* Connector */}
+          {idx !== newFlow.nodes.length - 1 && (
+            <div className="absolute left-6 top-14 h-full w-[2px] bg-slate-200" />
+          )}
+
+          {/* Step Circle */}
+          <div className="w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-bold shadow-lg">
+            {idx + 1}
+          </div>
+
+          {/* Card */}
+          <div className="flex-1 bg-white border rounded-2xl p-6 shadow-md hover:shadow-xl transition space-y-5">
+
+            <div className="flex justify-between items-center">
+              <h3 className="font-semibold text-slate-700">
+                {node.nodeName || `Step ${idx + 1}`}
+              </h3>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+              {/* Step Name */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-600 mb-1">Step Name</label>
+                <input
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white text-sm 
+focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  value={node.nodeName}
+                  onChange={(e)=>handleNodeChange(idx,"nodeName",e.target.value)}
+                />
+              </div>
+
+              {/* Column */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-600 mb-1">Sheet Column</label>
+                <input
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white text-sm 
+focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  value={node.sheetColumn || ""}
+                  onChange={(e)=>handleNodeChange(idx,"sheetColumn",e.target.value)}
+                />
+              </div>
+
+              {/* Employee */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-600 mb-1">Assign Employee</label>
+                <select
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white text-sm 
+focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  value={node.emailColumn || ""}
+                  onChange={(e)=>handleNodeChange(idx,"emailColumn",e.target.value)}
+                >
+                  <option value="">Select</option>
+                  {employees.map(emp => (
+                    <option key={emp._id} value={emp.email}>
+                      {emp.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Offset */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-600 mb-1">Offset (hrs)</label>
+                <input
+                  type="number"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white text-sm 
+focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  value={node.offsetValue}
+                  onChange={(e)=>handleNodeChange(idx,"offsetValue",e.target.value)}
+                />
+              </div>
+
+              {/* Input Type */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-600 mb-1">Input Type</label>
+                <select
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white text-sm 
+focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  value={node.inputType || "complete"}
+                  onChange={(e)=>handleNodeChange(idx,"inputType",e.target.value)}
+                >
+                  <option value="complete">✔ Complete / Pending</option>
+                  <option value="yesno">❓ Yes / No</option>
+                </select>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      ))}
+
+    </div>
   </div>
+
+</div>
 ) : (
 
    <div className="space-y-10">
@@ -1307,7 +1361,133 @@ return (
               <Database size={18} /> Flows
             </div>
 
-            {flows.map(flow => (
+
+<div className="w-full overflow-x-auto rounded-2xl border border-border shadow-lg bg-card">
+
+  <table className="min-w-full text-sm">
+
+    {/* HEADER */}
+    <thead className="bg-muted/50 backdrop-blur sticky top-0 z-10">
+      <tr className="text-left text-xs uppercase tracking-wider text-slate-500">
+        <th className="p-4">Flow</th>
+        <th className="p-4">Pipeline</th>
+        <th className="p-4">Working Hours</th>
+        <th className="p-4">Status</th>
+        <th className="p-4 text-right">Actions</th>
+      </tr>
+    </thead>
+
+    {/* BODY */}
+    <tbody>
+      {flows.map((flow) => (
+        <tr
+          key={flow._id}
+          className="border-t border-border hover:bg-muted/40 transition group"
+        >
+
+          {/* FLOW NAME */}
+          <td
+            className="p-4 cursor-pointer"
+            onClick={() => openFlowHistory(flow._id)}
+          >
+            <div className="flex flex-col">
+              <span className="font-semibold text-primary group-hover:underline">
+                {flow.flowName}
+              </span>
+              <span className="text-xs text-slate-400">
+                {flow.nodes?.length || 0} steps
+              </span>
+            </div>
+          </td>
+
+          {/* PIPELINE VIEW */}
+          <td className="p-4">
+            <div className="flex items-center gap-2 flex-wrap">
+
+              {flow.nodes?.slice(0, 4).map((node, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-1"
+                >
+                  <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-md">
+                    {node.nodeName}
+                  </span>
+
+                  {i < flow.nodes.length - 1 && (
+                    <ChevronRight size={14} className="text-slate-400" />
+                  )}
+                </div>
+              ))}
+
+              {flow.nodes?.length > 4 && (
+                <span className="text-xs text-slate-400">
+                  +{flow.nodes.length - 4} more
+                </span>
+              )}
+            </div>
+          </td>
+
+          {/* WORKING HOURS */}
+          <td className="p-4 text-slate-600">
+            <span className="flex items-center gap-1 text-xs">
+              <Clock size={14} />
+              {flow?.workingHours?.start}:00 - {flow?.workingHours?.end}:00
+            </span>
+          </td>
+
+          {/* STATUS */}
+          <td className="p-4">
+            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+              <CheckCircle2 size={14} />
+              Active
+            </span>
+          </td>
+
+          {/* ACTIONS */}
+          <td className="p-4">
+            <div className="flex justify-end gap-2 opacity-80 group-hover:opacity-100 transition">
+
+              <button
+                className="px-3 py-1 rounded-lg text-xs font-semibold bg-green-500 text-white hover:bg-green-600 transition shadow"
+                onClick={async () => {
+                  await API.post("/fms/start-flow", {
+                    templateId: flow._id,
+                    tenantId,
+                    orderIdentifier: "TEST-" + Date.now(),
+                  });
+                  fetchData();
+                }}
+              >
+                Start
+              </button>
+
+              <button
+                className="px-3 py-1 rounded-lg text-xs font-semibold bg-blue-500 text-white hover:bg-blue-600 transition shadow"
+                onClick={async () => {
+                  await API.get(`/fms/sync/${flow._id}`);
+                  fetchData();
+                }}
+              >
+                Sync
+              </button>
+
+              <button
+                className="px-2 py-1 rounded-lg text-red-500 hover:bg-red-50 transition"
+                onClick={() => handleDeleteFlow(flow._id)}
+              >
+                <Trash2 size={16} />
+              </button>
+
+            </div>
+          </td>
+
+        </tr>
+      ))}
+    </tbody>
+
+  </table>
+</div>
+            {/*flows.map(flow => (
               <div key={flow._id} className="flex flex-col md:flex-row justify-between gap-4  p-4 rounded-xl bg-card border border-border shadow-sm hover:shadow-md transition">
 
 
@@ -1324,7 +1504,7 @@ return (
                 >
                   {flow.flowName}
                 </span>
-                */}
+                }
                 <div
   className="flex-1 cursor-pointer"
   onClick={() => openFlowHistory(flow._id)}
@@ -1365,7 +1545,7 @@ return (
 
                 </div>
               </div>
-            ))}
+            ))*/}
           </section>
 
           <section className="space-y-4">
@@ -1379,16 +1559,23 @@ return (
               </p>
             )}
 
-            {activeInstances.map(instance => {
+            {/*activeInstances.map(instance => {
               const currentStep = instance.steps.find(
                 s => s.stepIndex === instance.currentStepIndex
               );
-
               return (
                 <div key={instance._id} className="bg-card border border-border rounded-xl p-5 space-y-3 shadow-sm hover:shadow-md transition">
 
                   <p><b>Order:</b> {instance.orderIdentifier}</p>
                   <p><b>Step:</b> {currentStep?.nodeName}</p>
+
+
+                  <p><b>Customer:</b> {instance.sheetDataId?.rawData?.["Customer Name"]}</p>
+<p><b>Item:</b> {instance.sheetDataId?.rawData?.["Item Name"]}</p>
+<p><b>Qty:</b> {instance.sheetDataId?.rawData?.["Entered Qty"]}</p>
+<p><b>PO:</b> {instance.sheetDataId?.rawData?.["PO Number"]}</p>
+
+
 
 
 
@@ -1434,7 +1621,158 @@ return (
 
                 </div>
               );
-            })}
+
+
+
+
+              const data = formatInstances(activeInstances || []);
+
+
+              <div className="w-full overflow-x-auto">
+  <table className="min-w-full border text-sm">
+
+    <thead className="bg-gray-100 sticky top-0">
+      <tr>
+        <th className="p-2 border">Order</th>
+        <th className="p-2 border">Step</th>
+        <th className="p-2 border">Customer</th>
+        <th className="p-2 border">Item</th>
+        <th className="p-2 border">Qty</th>
+        <th className="p-2 border">PO</th>
+        <th className="p-2 border">Remarks</th>
+        <th className="p-2 border">Decision</th>
+        <th className="p-2 border">Completed</th>
+        <th className="p-2 border">Status</th>
+        <th className="p-2 border">Deadline</th>
+        <th className="p-2 border">Actions</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {data.map((row) => (
+        <tr key={row.id} className="hover:bg-gray-50">
+
+          <td className="p-2 border">{row.order}</td>
+          <td className="p-2 border">{row.step}</td>
+          <td className="p-2 border">{row.customer}</td>
+          <td className="p-2 border">{row.item}</td>
+          <td className="p-2 border">{row.qty}</td>
+          <td className="p-2 border">{row.po}</td>
+          <td className="p-2 border">{row.remarks}</td>
+          <td className="p-2 border">{row.decision}</td>
+
+          <td className="p-2 border">
+            {row.completedAt
+              ? new Date(row.completedAt).toLocaleString()
+              : "—"}
+          </td>
+
+          <td className="p-2 border">
+            <span className={`px-2 py-1 rounded text-xs ${
+              row.status === "Completed"
+                ? "bg-green-100 text-green-700"
+                : "bg-yellow-100 text-yellow-700"
+            }`}>
+              {row.status}
+            </span>
+          </td>
+
+          <td className="p-2 border">
+            {row.deadline
+              ? new Date(row.deadline).toLocaleString()
+              : "—"}
+          </td>
+
+          <td className="p-2 border">
+            <button
+              className="text-blue-600"
+              onClick={() => openHistory(row.id)}
+            >
+              View History
+            </button>
+          </td>
+
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+
+
+            })*/}
+            <div className="w-full overflow-x-auto">
+  <table className="min-w-full border text-sm">
+
+    <thead className="bg-gray-100 sticky top-0">
+      <tr>
+        <th className="p-2 border">Order</th>
+        <th className="p-2 border">Step</th>
+        <th className="p-2 border">Customer</th>
+        <th className="p-2 border">Item</th>
+        <th className="p-2 border">Qty</th>
+        <th className="p-2 border">PO</th>
+        <th className="p-2 border">Remarks</th>
+        <th className="p-2 border">Decision</th>
+        <th className="p-2 border">Completed</th>
+        <th className="p-2 border">Status</th>
+        <th className="p-2 border">Deadline</th>
+        <th className="p-2 border">Actions</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {data.map((row) => (
+        <tr key={row.id} className="hover:bg-gray-50">
+
+          <td className="p-2 border">{row.order}</td>
+          <td className="p-2 border">{row.step}</td>
+          <td className="p-2 border">{row.customer}</td>
+          <td className="p-2 border">{row.item}</td>
+          <td className="p-2 border">{row.qty}</td>
+          <td className="p-2 border">{row.po}</td>
+          <td className="p-2 border">{row.remarks}</td>
+          <td className="p-2 border">{row.decision}</td>
+
+          <td className="p-2 border">
+            {row.completedAt
+              ? new Date(row.completedAt).toLocaleString()
+              : "—"}
+          </td>
+
+          <td className="p-2 border">
+            <span className={`px-2 py-1 rounded text-xs ${
+              row.status === "Completed"
+                ? "bg-green-100 text-green-700"
+                : "bg-yellow-100 text-yellow-700"
+            }`}>
+              {row.status}
+            </span>
+          </td>
+
+          <td className="p-2 border">
+            {row.deadline
+              ? new Date(row.deadline).toLocaleString()
+              : "—"}
+          </td>
+
+          <td className="p-2 border">
+            <button
+              className="text-blue-600"
+              onClick={() => openHistory(row.id)}
+            >
+              View History
+            </button>
+          </td>
+
+        </tr>
+      ))}
+    </tbody>
+
+  </table>
+</div>
+
+
           </section>
 
         </div>
@@ -1468,7 +1806,7 @@ return (
 
 
 
-    {showHistory && (
+    {/*showHistory && (
   <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
     
     <div className="bg-white w-[90%] max-w-5xl p-6 rounded-xl shadow-xl">
@@ -1507,6 +1845,89 @@ return (
           </tbody>
 
         </table>
+      </div>
+
+    </div>
+  </div>
+)*/}
+
+{showHistory && (
+  <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[99999] p-4">
+
+    <div className="bg-card border border-border w-full max-w-6xl rounded-2xl shadow-xl overflow-hidden">
+
+      {/* HEADER */}
+      <div className="flex justify-between items-center px-6 py-4 border-b bg-background sticky top-0 z-10">
+        <h2 className="text-lg font-bold">
+          Instance History
+        </h2>
+
+        <button
+          className="text-slate-500 hover:text-red-500"
+          onClick={() => setShowHistory(false)}
+        >
+          <X size={22} />
+        </button>
+      </div>
+
+      {/* TABLE */}
+      <div className="overflow-auto max-h-[500px]">
+
+        <table className="w-full text-sm border">
+
+          <thead className="bg-gray-200 sticky top-0">
+            <tr>
+              <th className="p-2 border">Time</th>
+              <th className="p-2 border">Order</th>
+              <th className="p-2 border">Step</th>
+              <th className="p-2 border">Action</th>
+              <th className="p-2 border">User</th>
+              <th className="p-2 border">Details</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {historyData.map((h, i) => (
+              <tr key={i} className="border-b hover:bg-gray-50">
+
+                <td className="p-2 border whitespace-nowrap">
+                  {new Date(h.timestamp).toLocaleString()}
+                </td>
+
+                <td className="p-2 border">
+                  {h.orderIdentifier}
+                </td>
+
+                <td className="p-2 border">
+                  Step {h.stepIndex + 1} - {h.nodeName}
+                </td>
+
+                <td className={`p-2 border font-semibold ${
+                  h.action === "COMPLETED"
+                    ? "text-green-600"
+                    : h.action === "DELAYED"
+                    ? "text-red-600"
+                    : "text-yellow-600"
+                }`}>
+                  {h.action}
+                </td>
+
+                <td className="p-2 border">
+                  {h.performedBy || "-"}
+                </td>
+
+                <td className="p-2 border">
+                  {h.newValue
+                    ? JSON.stringify(h.newValue)
+                    : "-"}
+                </td>
+
+              </tr>
+            ))}
+          </tbody>
+
+        </table>
+
       </div>
 
     </div>
